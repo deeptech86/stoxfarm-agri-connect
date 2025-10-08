@@ -22,21 +22,13 @@ const ListingCard = ({ listing, showActions, userRole }: ListingCardProps) => {
   const [showBidDialog, setShowBidDialog] = useState(false);
   const seller = mockUsers.find(u => u.id === listing.sellerId);
 
-  const handleApprove = () => {
-    updateListingStatus(listing.id, 'active');
-    addNotification(listing.sellerId, `Your listing for ${listing.produceName} has been approved and is now live!`, 'success');
-  };
-
-  const handleReject = () => {
-    updateListingStatus(listing.id, 'rejected');
-    addNotification(listing.sellerId, `Your listing for ${listing.produceName} has been rejected. Please review and resubmit.`, 'warning');
-  };
+  // Check if listing is expired
+  const isExpired = new Date() > new Date(listing.expiresAt);
+  const displayStatus = isExpired ? 'expired' : listing.status;
 
   const getStatusColor = () => {
-    switch (listing.status) {
+    switch (displayStatus) {
       case 'active': return 'bg-success/10 text-success';
-      case 'pending': return 'bg-warning/10 text-warning';
-      case 'rejected': return 'bg-destructive/10 text-destructive';
       case 'expired': return 'bg-muted text-muted-foreground';
       default: return '';
     }
@@ -52,7 +44,7 @@ const ListingCard = ({ listing, showActions, userRole }: ListingCardProps) => {
             className="w-full h-full object-cover"
           />
           <Badge className={`absolute top-2 right-2 ${getStatusColor()}`}>
-            {listing.status}
+            {displayStatus}
           </Badge>
         </div>
         <CardHeader>
@@ -80,18 +72,7 @@ const ListingCard = ({ listing, showActions, userRole }: ListingCardProps) => {
             <Eye className="h-4 w-4 mr-2" />
             Details
           </Button>
-          {showActions && userRole === 'admin' && listing.status === 'pending' && (
-            <>
-              <Button size="sm" onClick={handleApprove} className="flex-1">
-                <Check className="h-4 w-4 mr-2" />
-                Approve
-              </Button>
-              <Button size="sm" variant="destructive" onClick={handleReject}>
-                <X className="h-4 w-4" />
-              </Button>
-            </>
-          )}
-          {userRole === 'buyer' && listing.status === 'active' && (
+          {userRole === 'buyer' && displayStatus === 'active' && (
             <Button size="sm" onClick={() => setShowBidDialog(true)} className="flex-1">
               Place Bid
             </Button>

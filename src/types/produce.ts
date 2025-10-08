@@ -23,6 +23,7 @@ export interface Bid {
   id: string;
   listingId: string;
   buyerId: string;
+  buyerName: string;
   quantity: number;
   pricePerUnit: number;
   status: 'pending' | 'accepted' | 'rejected' | 'counter';

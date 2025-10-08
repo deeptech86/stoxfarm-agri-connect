@@ -43,6 +43,7 @@ const PlaceBidDialog = ({ listing, open, onOpenChange }: PlaceBidDialogProps) =>
       id: `bid-${Date.now()}`,
       listingId: listing.id,
       buyerId: user.id,
+      buyerName: user.name,
       quantity: bidQuantity,
       pricePerUnit: bidPrice,
       status: 'pending' as const,

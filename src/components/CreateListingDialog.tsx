@@ -36,16 +36,16 @@ const CreateListingDialog = ({ open, onOpenChange }: CreateListingDialogProps) =
       quantity: parseInt(quantity),
       minOrderQty: parseInt(minOrderQty),
       images: ['https://images.unsplash.com/photo-1542838132-92c53300491e'],
-      status: 'pending' as const,
+      status: 'active' as const,
       createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(), // Will be set to +7 days by addListing
     };
 
     addListing(newListing);
     
     toast({
       title: 'Listing Created',
-      description: 'Your listing has been submitted for admin approval.',
+      description: 'Your listing is now live and expires in 7 days!',
     });
 
     onOpenChange(false);
@@ -60,7 +60,7 @@ const CreateListingDialog = ({ open, onOpenChange }: CreateListingDialogProps) =
         <DialogHeader>
           <DialogTitle>Create New Listing</DialogTitle>
           <DialogDescription>
-            List your produce for sale. Admin will review before going live.
+            List your produce for sale. Listing will expire automatically after 7 days.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

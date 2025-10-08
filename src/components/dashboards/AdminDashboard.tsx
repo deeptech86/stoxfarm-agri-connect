@@ -10,19 +10,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 const AdminDashboard = () => {
   const [filterProduce, setFilterProduce] = useState('');
   
-  const pendingListings = mockListings.filter(l => l.status === 'pending');
-  const activeListings = mockListings.filter(l => l.status === 'active');
-  const rejectedListings = mockListings.filter(l => l.status === 'rejected');
+  const activeListings = mockListings.filter(l => {
+    const isExpired = new Date() > new Date(l.expiresAt);
+    return l.status === 'active' && !isExpired;
+  });
   
-  const filteredPending = filterProduce 
-    ? pendingListings.filter(l => l.produceName === filterProduce)
-    : pendingListings;
+  const expiredListings = mockListings.filter(l => {
+    const isExpired = new Date() > new Date(l.expiresAt);
+    return isExpired || l.status === 'expired';
+  });
+  
   const filteredActive = filterProduce 
     ? activeListings.filter(l => l.produceName === filterProduce)
     : activeListings;
-  const filteredRejected = filterProduce 
-    ? rejectedListings.filter(l => l.produceName === filterProduce)
-    : rejectedListings;
+  
+  const filteredExpired = filterProduce 
+    ? expiredListings.filter(l => l.produceName === filterProduce)
+    : expiredListings;
 
   return (
     <div className="space-y-6">
@@ -34,14 +38,14 @@ const AdminDashboard = () => {
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">{pendingListings.length}</CardTitle>
-            <CardDescription>Pending Approval</CardDescription>
+            <CardTitle className="text-2xl">{activeListings.length}</CardTitle>
+            <CardDescription>Active Listings</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">{activeListings.length}</CardTitle>
-            <CardDescription>Active Listings</CardDescription>
+            <CardTitle className="text-2xl">{expiredListings.length}</CardTitle>
+            <CardDescription>Expired Listings</CardDescription>
           </CardHeader>
         </Card>
         <Card>
@@ -82,21 +86,12 @@ const AdminDashboard = () => {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="pending" className="space-y-4">
+      <Tabs defaultValue="active" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="pending">Pending ({filteredPending.length})</TabsTrigger>
           <TabsTrigger value="active">Active ({filteredActive.length})</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected ({filteredRejected.length})</TabsTrigger>
+          <TabsTrigger value="expired">Expired ({filteredExpired.length})</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="pending" className="space-y-4">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredPending.map(listing => (
-              <ListingCard key={listing.id} listing={listing} showActions userRole="admin" />
-            ))}
-          </div>
-        </TabsContent>
 
         <TabsContent value="active" className="space-y-4">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -106,9 +101,9 @@ const AdminDashboard = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="rejected" className="space-y-4">
+        <TabsContent value="expired" className="space-y-4">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredRejected.map(listing => (
+            {filteredExpired.map(listing => (
               <ListingCard key={listing.id} listing={listing} showActions={false} userRole="admin" />
             ))}
           </div>
