@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { produceList, addListing } from '@/lib/mockData';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Camera } from 'lucide-react';
+import { Camera, Video } from 'lucide-react';
 
 interface CreateListingDialogProps {
   open: boolean;
@@ -20,8 +20,19 @@ const CreateListingDialog = ({ open, onOpenChange }: CreateListingDialogProps) =
   const [selectedProduce, setSelectedProduce] = useState('');
   const [quantity, setQuantity] = useState('');
   const [minOrderQty, setMinOrderQty] = useState('');
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string>('');
 
   const selectedProduceData = produceList.find(p => p.name === selectedProduce);
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setVideoFile(file);
+      const url = URL.createObjectURL(file);
+      setVideoPreview(url);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +47,7 @@ const CreateListingDialog = ({ open, onOpenChange }: CreateListingDialogProps) =
       quantity: parseInt(quantity),
       minOrderQty: parseInt(minOrderQty),
       images: ['https://images.unsplash.com/photo-1542838132-92c53300491e'],
+      video: videoPreview || undefined,
       status: 'active' as const,
       createdAt: new Date(),
       expiresAt: new Date(), // Will be set to +7 days by addListing
@@ -52,6 +64,8 @@ const CreateListingDialog = ({ open, onOpenChange }: CreateListingDialogProps) =
     setSelectedProduce('');
     setQuantity('');
     setMinOrderQty('');
+    setVideoFile(null);
+    setVideoPreview('');
   };
 
   return (
@@ -119,6 +133,45 @@ const CreateListingDialog = ({ open, onOpenChange }: CreateListingDialogProps) =
               <Camera className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Click to upload photo</p>
               <p className="text-xs text-muted-foreground">(Demo: default image will be used)</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="video">Product Video (Optional)</Label>
+            <div className="border-2 border-dashed rounded-lg p-6">
+              {videoPreview ? (
+                <div className="space-y-2">
+                  <video 
+                    src={videoPreview} 
+                    controls 
+                    className="w-full rounded-lg max-h-48"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setVideoFile(null);
+                      setVideoPreview('');
+                    }}
+                  >
+                    Remove Video
+                  </Button>
+                </div>
+              ) : (
+                <label htmlFor="video" className="cursor-pointer block text-center">
+                  <Video className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Click to upload video</p>
+                  <p className="text-xs text-muted-foreground">MP4, WebM, or OGG (max 50MB)</p>
+                  <Input
+                    id="video"
+                    type="file"
+                    accept="video/mp4,video/webm,video/ogg"
+                    onChange={handleVideoChange}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </div>
           </div>
 

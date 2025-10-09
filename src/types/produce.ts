@@ -14,6 +14,7 @@ export interface Listing {
   quantity: number;
   minOrderQty: number;
   images: string[];
+  video?: string;
   status: ListingStatus;
   createdAt: Date;
   expiresAt: Date;
