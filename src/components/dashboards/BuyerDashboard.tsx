@@ -15,15 +15,15 @@ import { Bid } from '@/types/produce';
 
 const BuyerDashboard = () => {
   const { user } = useAuth();
-  const [searchProduce, setSearchProduce] = useState('');
+  const [searchProduce, setSearchProduce] = useState('all');
   const [selectedCounterBid, setSelectedCounterBid] = useState<Bid | null>(null);
   const [selectedProduceName, setSelectedProduceName] = useState('');
   const [selectedSellerId, setSelectedSellerId] = useState('');
   
   const activeListings = mockListings.filter(l => l.status === 'active');
-  const filteredListings = searchProduce 
-    ? activeListings.filter(l => l.produceName.toLowerCase().includes(searchProduce.toLowerCase()))
-    : activeListings;
+  const filteredListings = searchProduce === 'all'
+    ? activeListings
+    : activeListings.filter(l => l.produceName.toLowerCase().includes(searchProduce.toLowerCase()));
   
   // Get my bids
   const myBids = mockBids.filter(b => b.buyerId === user?.id);
@@ -51,7 +51,7 @@ const BuyerDashboard = () => {
                   <SelectValue placeholder="All produce" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Produce</SelectItem>
+                  <SelectItem value="all">All Produce</SelectItem>
                   {produceList.map(p => (
                     <SelectItem key={p.id} value={p.name}>
                       {p.name}

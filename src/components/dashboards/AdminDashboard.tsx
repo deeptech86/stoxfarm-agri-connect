@@ -8,7 +8,7 @@ import ListingCard from '@/components/ListingCard';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const AdminDashboard = () => {
-  const [filterProduce, setFilterProduce] = useState('');
+  const [filterProduce, setFilterProduce] = useState('all');
   
   const activeListings = mockListings.filter(l => {
     const isExpired = new Date() > new Date(l.expiresAt);
@@ -20,13 +20,13 @@ const AdminDashboard = () => {
     return isExpired || l.status === 'expired';
   });
   
-  const filteredActive = filterProduce 
-    ? activeListings.filter(l => l.produceName === filterProduce)
-    : activeListings;
+  const filteredActive = filterProduce === 'all'
+    ? activeListings
+    : activeListings.filter(l => l.produceName === filterProduce);
   
-  const filteredExpired = filterProduce 
-    ? expiredListings.filter(l => l.produceName === filterProduce)
-    : expiredListings;
+  const filteredExpired = filterProduce === 'all'
+    ? expiredListings
+    : expiredListings.filter(l => l.produceName === filterProduce);
 
   return (
     <div className="space-y-6">
@@ -74,7 +74,7 @@ const AdminDashboard = () => {
                 <SelectValue placeholder="All produce" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Produce</SelectItem>
+                <SelectItem value="all">All Produce</SelectItem>
                 {produceList.map(p => (
                   <SelectItem key={p.id} value={p.name}>
                     {p.name}
