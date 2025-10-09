@@ -22,7 +22,7 @@ const Login = () => {
     if (success) {
       navigate('/dashboard');
     } else {
-      setError('Invalid credentials. Use any email from mock data.');
+      setError('Invalid email or password. Please check the demo credentials below.');
     }
   };
 
@@ -72,11 +72,12 @@ const Login = () => {
           
           <div className="mt-6 p-4 bg-muted rounded-lg text-sm space-y-2">
             <p className="font-semibold">Demo Credentials:</p>
-            <p>Admin: admin@stoxfarm.in</p>
-            <p>Seller: rajesh@farm.in</p>
-            <p>Buyer: anil@buyer.in</p>
-            <p>Logistics: fast@logistics.in</p>
-            <p className="text-xs text-muted-foreground mt-2">Password: any text</p>
+            <div className="space-y-1">
+              <p><span className="font-medium">Admin:</span> admin@stoxfarm.com / admin123</p>
+              <p><span className="font-medium">Seller:</span> seller1@stoxfarm.com / seller123</p>
+              <p><span className="font-medium">Buyer:</span> buyer1@stoxfarm.com / buyer123</p>
+              <p><span className="font-medium">Logistics:</span> logistics1@stoxfarm.com / logistics123</p>
+            </div>
           </div>
         </CardContent>
       </Card>
