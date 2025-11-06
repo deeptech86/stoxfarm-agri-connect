@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Sprout, LogOut, User, Bell } from 'lucide-react';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import NotificationPanel from '@/components/NotificationPanel';
 
 interface LayoutProps {
   children: ReactNode;
@@ -37,14 +39,21 @@ const Layout = ({ children }: LayoutProps) => {
           </div>
           
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                  {unreadCount}
-                </Badge>
-              )}
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                      {unreadCount}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="p-0">
+                <NotificationPanel />
+              </PopoverContent>
+            </Popover>
             <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
               <User className="h-5 w-5" />
             </Button>
