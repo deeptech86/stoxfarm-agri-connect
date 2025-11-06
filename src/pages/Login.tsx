@@ -14,6 +14,12 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const handleUseCredentials = (demoEmail: string, demoPassword: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setError('');
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -70,13 +76,53 @@ const Login = () => {
             </Button>
           </form>
           
-          <div className="mt-6 p-4 bg-muted rounded-lg text-sm space-y-2">
+          <div className="mt-6 p-4 bg-muted rounded-lg text-sm space-y-3">
             <p className="font-semibold">Demo Credentials:</p>
-            <div className="space-y-1">
-              <p><span className="font-medium">Admin:</span> admin@stoxfarm.com / admin123</p>
-              <p><span className="font-medium">Seller:</span> seller1@stoxfarm.com / seller123</p>
-              <p><span className="font-medium">Buyer:</span> buyer1@stoxfarm.com / buyer123</p>
-              <p><span className="font-medium">Logistics:</span> logistics1@stoxfarm.com / logistics123</p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p><span className="font-medium">Admin:</span> admin@stoxfarm.com / admin123</p>
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => handleUseCredentials('admin@stoxfarm.com', 'admin123')}
+                >
+                  Use
+                </Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <p><span className="font-medium">Seller:</span> seller1@stoxfarm.com / seller123</p>
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => handleUseCredentials('seller1@stoxfarm.com', 'seller123')}
+                >
+                  Use
+                </Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <p><span className="font-medium">Buyer:</span> buyer1@stoxfarm.com / buyer123</p>
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => handleUseCredentials('buyer1@stoxfarm.com', 'buyer123')}
+                >
+                  Use
+                </Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <p><span className="font-medium">Logistics:</span> logistics1@stoxfarm.com / logistics123</p>
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => handleUseCredentials('logistics1@stoxfarm.com', 'logistics123')}
+                >
+                  Use
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
