@@ -128,6 +128,7 @@ const SellerDashboard = () => {
         <BidManagementDialog
           bid={selectedBid}
           produceName={selectedProduceName}
+          sellerId={user?.id || ''}
           open={!!selectedBid}
           onOpenChange={(open) => !open && setSelectedBid(null)}
         />

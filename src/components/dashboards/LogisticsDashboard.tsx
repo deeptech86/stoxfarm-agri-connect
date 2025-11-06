@@ -1,9 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { mockTransactions } from '@/lib/mockData';
+import { mockTransactions, mockUsers } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Package } from 'lucide-react';
+import { Package, MapPin, Phone } from 'lucide-react';
 
 const LogisticsDashboard = () => {
+  const getSeller = (sellerId: string) => mockUsers.find(u => u.id === sellerId);
+  const getBuyer = (buyerId: string) => mockUsers.find(u => u.id === buyerId);
+
   return (
     <div className="space-y-6">
       <div>
@@ -47,27 +50,55 @@ const LogisticsDashboard = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Seller</TableHead>
-                  <TableHead>Buyer</TableHead>
+                  <TableHead>Seller Details</TableHead>
+                  <TableHead>Buyer Details</TableHead>
                   <TableHead>Produce</TableHead>
                   <TableHead>Quantity (kg)</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockTransactions.map(t => (
-                  <TableRow key={t.id}>
-                    <TableCell>{t.sellerName}</TableCell>
-                    <TableCell>{t.buyerName}</TableCell>
-                    <TableCell>{t.produceName}</TableCell>
-                    <TableCell>{t.quantity}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success">
-                        Ready for Pickup
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {mockTransactions.map(t => {
+                  const seller = getSeller(t.sellerId);
+                  const buyer = getBuyer(t.buyerId);
+                  return (
+                    <TableRow key={t.id}>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <p className="font-medium">{t.sellerName}</p>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            <span>{seller?.phone}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3" />
+                            <span>{seller?.address}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <p className="font-medium">{t.buyerName}</p>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            <span>{buyer?.phone}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3" />
+                            <span>{buyer?.address}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{t.produceName}</TableCell>
+                      <TableCell>{t.quantity}</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success">
+                          Ready for Pickup
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

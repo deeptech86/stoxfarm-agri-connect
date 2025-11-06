@@ -12,11 +12,12 @@ import { Check, X, MessageSquare } from 'lucide-react';
 interface BidManagementDialogProps {
   bid: Bid;
   produceName: string;
+  sellerId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const BidManagementDialog = ({ bid, produceName, open, onOpenChange }: BidManagementDialogProps) => {
+const BidManagementDialog = ({ bid, produceName, sellerId, open, onOpenChange }: BidManagementDialogProps) => {
   const { addNotification } = useNotifications();
   const { toast } = useToast();
   const [showCounterInput, setShowCounterInput] = useState(false);
@@ -26,12 +27,14 @@ const BidManagementDialog = ({ bid, produceName, open, onOpenChange }: BidManage
     updateBid(bid.id, { status: 'accepted' });
     
     // Create transaction
-    const seller = mockUsers.find(u => u.id === bid.listingId.split('-')[0]);
+    const seller = mockUsers.find(u => u.id === sellerId);
     const buyer = mockUsers.find(u => u.id === bid.buyerId);
     const logistics = mockUsers.filter(u => u.role === 'logistics');
     
     addTransaction({
       id: `txn-${Date.now()}`,
+      sellerId: sellerId,
+      buyerId: bid.buyerId,
       sellerName: seller?.name || 'Unknown Seller',
       buyerName: bid.buyerName,
       produceName: produceName,

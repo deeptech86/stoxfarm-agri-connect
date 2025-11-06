@@ -32,6 +32,8 @@ const CounterOfferDialog = ({ bid, produceName, sellerId, open, onOpenChange }: 
     const finalPrice = bid.counterPrice || bid.pricePerUnit;
     addTransaction({
       id: `txn-${Date.now()}`,
+      sellerId: sellerId,
+      buyerId: user.id,
       sellerName: seller?.name || 'Unknown Seller',
       buyerName: user.name,
       produceName: produceName,

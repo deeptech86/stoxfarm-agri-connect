@@ -34,6 +34,8 @@ export interface Bid {
 
 export interface Transaction {
   id: string;
+  sellerId: string;
+  buyerId: string;
   sellerName: string;
   buyerName: string;
   produceName: string;
