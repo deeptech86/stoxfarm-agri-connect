@@ -1,41 +1,80 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Sprout, TrendingUp, Users, Shield } from 'lucide-react';
-import heroImage from '@/assets/hero-farmers.jpg';
+import { TrendingUp, Users, Shield } from 'lucide-react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+import carouselFarmers from '@/assets/carousel-farmers-1.jpg';
+import carouselKitchen from '@/assets/carousel-kitchen-1.jpg';
+import carouselMarket from '@/assets/carousel-market-1.jpg';
 
 const Index = () => {
   const navigate = useNavigate();
 
+  const carouselImages = [
+    { src: carouselFarmers, alt: "Indian farmers with fresh produce in fields" },
+    { src: carouselKitchen, alt: "Restaurant kitchen with chefs preparing fresh vegetables" },
+    { src: carouselMarket, alt: "Farmers at produce market with fresh vegetables" },
+  ];
+
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
+      {/* Hero Carousel Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img 
-            src={heroImage} 
-            alt="Indian farmers with fresh produce" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
-        </div>
-        <div className="relative container mx-auto py-20 px-4">
-          <div className="max-w-3xl space-y-6">
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground">
-              Welcome to <span className="text-primary">StoxFarm</span>
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              Connecting farmers directly with buyers for fresh, quality produce at fair prices
-            </p>
-            <div className="flex gap-4 flex-wrap">
-              <Button size="lg" onClick={() => navigate('/login')}>
-                Get Started
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate('/login')}>
-                Learn More
-              </Button>
-            </div>
-          </div>
-        </div>
+        <Carousel
+          plugins={[
+            Autoplay({
+              delay: 4000,
+            }),
+          ]}
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent>
+            {carouselImages.map((image, index) => (
+              <CarouselItem key={index}>
+                <div className="relative h-[600px] md:h-[700px]">
+                  <div className="absolute inset-0">
+                    <img 
+                      src={image.src} 
+                      alt={image.alt}
+                      className="w-full h-full object-cover opacity-40"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-background/50 via-background/30 to-background/50" />
+                  </div>
+                  <div className="relative container mx-auto h-full flex items-center justify-center px-4">
+                    <div className="max-w-3xl space-y-6 text-center">
+                      <h1 className="text-4xl md:text-6xl font-bold text-foreground">
+                        Welcome to <span className="text-primary">StoxFarm</span>
+                      </h1>
+                      <p className="text-xl text-foreground">
+                        Connecting farmers directly with buyers for fresh, quality produce at fair prices
+                      </p>
+                      <div className="flex gap-4 flex-wrap justify-center">
+                        <Button size="lg" onClick={() => navigate('/login')}>
+                          Get Started
+                        </Button>
+                        <Button size="lg" variant="outline" onClick={() => navigate('/login')}>
+                          Learn More
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="left-4" />
+          <CarouselNext className="right-4" />
+        </Carousel>
       </section>
 
       {/* Features Section */}
