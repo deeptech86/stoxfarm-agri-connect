@@ -27,11 +27,11 @@ const NotificationPanel = () => {
   };
 
   return (
-    <div className="w-80">
+    <div className="w-80 overflow-hidden">
       <div className="p-4 border-b">
         <h3 className="font-semibold">Notifications</h3>
       </div>
-      <ScrollArea className="h-96">
+      <ScrollArea className="h-96 overflow-hidden">
         {userNotifications.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
             No notifications
@@ -46,9 +46,9 @@ const NotificationPanel = () => {
                 }`}
               >
                 <div className="flex gap-3">
-                  <div className="mt-0.5">{getIcon(notification.type)}</div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm">{notification.message}</p>
+                  <div className="mt-0.5 flex-shrink-0">{getIcon(notification.type)}</div>
+                  <div className="flex-1 space-y-1 min-w-0">
+                    <p className="text-sm break-words overflow-wrap-anywhere">{notification.message}</p>
                     <p className="text-xs text-muted-foreground">
                       {formatDistanceToNow(notification.createdAt, { addSuffix: true })}
                     </p>
