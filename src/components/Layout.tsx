@@ -28,7 +28,10 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div 
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate('/dashboard')}
+          >
             <div className="bg-primary text-primary-foreground p-2 rounded-full">
               <Sprout className="h-5 w-5" />
             </div>
