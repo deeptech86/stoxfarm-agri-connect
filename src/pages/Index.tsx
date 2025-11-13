@@ -86,8 +86,8 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <div className="text-center space-y-4 p-6 rounded-lg border bg-card">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
+          <div className="text-center space-y-4 p-6 rounded-lg border bg-transparent shadow-sm">
             <div className="flex justify-center">
               <TrendingUp className="h-14 w-14 text-primary" />
             </div>
@@ -97,7 +97,7 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="text-center space-y-4 p-6 rounded-lg border bg-card">
+          <div className="text-center space-y-4 p-6 rounded-lg border bg-transparent shadow-sm">
             <div className="flex justify-center">
               <Users className="h-14 w-14 text-accent" />
             </div>
@@ -107,7 +107,7 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="text-center space-y-4 p-6 rounded-lg border bg-card">
+          <div className="text-center space-y-4 p-6 rounded-lg border bg-transparent shadow-sm">
             <div className="flex justify-center">
               <Shield className="h-14 w-14 text-secondary" />
             </div>
@@ -117,7 +117,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="text-center space-y-4 p-6 rounded-lg border bg-card">
+          <div className="text-center space-y-4 p-6 rounded-lg border bg-transparent shadow-sm">
             <div className="flex justify-center">
               <TrendingUp className="h-14 w-14 text-primary" />
             </div>
@@ -127,7 +127,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="text-center space-y-4 p-6 rounded-lg border bg-card">
+          <div className="text-center space-y-4 p-6 rounded-lg border bg-transparent shadow-sm">
             <div className="flex justify-center">
               <Shield className="h-14 w-14 text-accent" />
             </div>
@@ -224,8 +224,8 @@ const Index = () => {
               <h4 className="font-semibold text-foreground">Contact Us</h4>
               <div className="text-sm text-muted-foreground space-y-2">
                 <p>Email: contact@stoxfarm.com</p>
-                <p>Phone: +91 98765 43210</p>
-                <p>Address: Mumbai, Maharashtra, India</p>
+                <p>Phone: 999-999-8888</p>
+                <p>Address: Bengaluru, Karnataka, India</p>
               </div>
             </div>
           </div>
