@@ -9,6 +9,7 @@ import CreateListingDialog from '@/components/CreateListingDialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import BidManagementDialog from '@/components/BidManagementDialog';
 import { Bid } from '@/types/produce';
+import DeliveryTrackingList from '@/components/DeliveryTrackingList';
 
 const SellerDashboard = () => {
   const { user } = useAuth();
@@ -121,6 +122,9 @@ const SellerDashboard = () => {
           ))}
         </div>
       </div>
+
+      {/* Delivery Tracking */}
+      <DeliveryTrackingList filterByRole="seller" userId={user?.id} />
 
       <CreateListingDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
       
