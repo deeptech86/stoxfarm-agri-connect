@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import CounterOfferDialog from '@/components/CounterOfferDialog';
 import { Bid } from '@/types/produce';
+import DeliveryTrackingList from '@/components/DeliveryTrackingList';
 
 const BuyerDashboard = () => {
   const { user } = useAuth();
@@ -130,6 +131,9 @@ const BuyerDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Delivery Tracking */}
+      <DeliveryTrackingList filterByRole="buyer" userId={user?.id} />
 
       {selectedCounterBid && (
         <CounterOfferDialog

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { mockListings, mockTransactions, produceList } from '@/lib/mockData';
 import ListingCard from '@/components/ListingCard';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import DeliveryTrackingList from '@/components/DeliveryTrackingList';
 
 const AdminDashboard = () => {
   const [filterProduce, setFilterProduce] = useState('all');
@@ -91,6 +92,7 @@ const AdminDashboard = () => {
           <TabsTrigger value="active">Active ({filteredActive.length})</TabsTrigger>
           <TabsTrigger value="expired">Expired ({filteredExpired.length})</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="tracking">Live Tracking</TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">
@@ -145,12 +147,16 @@ const AdminDashboard = () => {
                     ))
                   )}
                 </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+            </Table>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="tracking" className="space-y-4">
+        <DeliveryTrackingList filterByRole="admin" />
+      </TabsContent>
+    </Tabs>
+  </div>
   );
 };
 

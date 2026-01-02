@@ -2,6 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { mockTransactions, mockUsers } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Package, MapPin, Phone } from 'lucide-react';
+import DeliveryTrackingList from '@/components/DeliveryTrackingList';
+import { mockDeliveries } from '@/lib/mockDeliveries';
 
 const LogisticsDashboard = () => {
   const getSeller = (sellerId: string) => mockUsers.find(u => u.id === sellerId);
@@ -14,26 +16,35 @@ const LogisticsDashboard = () => {
         <p className="text-muted-foreground">Manage deliveries and shipments</p>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">{mockTransactions.length}</CardTitle>
+            <CardTitle className="text-2xl">{mockDeliveries.length}</CardTitle>
             <CardDescription>Total Deliveries</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">0</CardTitle>
+            <CardTitle className="text-2xl">{mockDeliveries.filter(d => d.status === 'pending').length}</CardTitle>
             <CardDescription>Pending Pickups</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">0</CardTitle>
+            <CardTitle className="text-2xl">{mockDeliveries.filter(d => d.status === 'in_transit').length}</CardTitle>
             <CardDescription>In Transit</CardDescription>
           </CardHeader>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">{mockDeliveries.filter(d => d.status === 'delivered').length}</CardTitle>
+            <CardDescription>Delivered</CardDescription>
+          </CardHeader>
+        </Card>
       </div>
+
+      {/* Live Tracking Map */}
+      <DeliveryTrackingList filterByRole="logistics" />
 
       <Card>
         <CardHeader>
