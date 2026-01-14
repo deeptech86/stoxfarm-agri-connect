@@ -108,6 +108,31 @@ const Profile = () => {
                   rows={4}
                 />
               </div>
+
+              {/* Satellite Center Fields - for Seller, Buyer, Logistics */}
+              {['seller', 'buyer', 'logistics'].includes(user.role) && (
+                <div className="p-4 bg-muted/50 rounded-lg space-y-4">
+                  <Label className="text-base font-semibold">Satellite Center Information</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="satelliteCenterName">Satellite Center Name</Label>
+                      <Input
+                        id="satelliteCenterName"
+                        value={user.satelliteCenterName || 'Not assigned'}
+                        disabled
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="satelliteCenterId">Center ID</Label>
+                      <Input
+                        id="satelliteCenterId"
+                        value={user.satelliteCenterId || 'Not assigned'}
+                        disabled
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-2">
