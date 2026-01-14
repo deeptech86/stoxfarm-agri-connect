@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 interface Notification {
   id: string;
@@ -21,9 +21,8 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const { toast } = useToast();
 
-  const addNotification = (userId: string, message: string, type: Notification['type'] = 'info') => {
+  const addNotification = useCallback((userId: string, message: string, type: Notification['type'] = 'info') => {
     const notification: Notification = {
       id: `notif-${Date.now()}`,
       userId,
@@ -39,7 +38,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       description: message,
       variant: type === 'error' || type === 'warning' ? 'destructive' : 'default',
     });
-  };
+  }, []);
 
   const markAsRead = (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
