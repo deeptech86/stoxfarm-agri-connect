@@ -1,5 +1,12 @@
 export type UserRole = 'seller' | 'buyer' | 'logistics' | 'admin';
 
+export interface CropDetail {
+  cropName: string;
+  gst: number;
+  overallQuantity: number;
+  minQuantity: number;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -10,7 +17,10 @@ export interface User {
   address: string;
   profilePic?: string;
   notes?: string;
-  cropsSupported?: string[]; // Only for sellers
+  cropsSupported?: string[]; // Legacy - kept for compatibility
+  cropDetails?: CropDetail[]; // Detailed crop info for sellers
+  satelliteCenterName?: string; // For seller, buyer, logistics
+  satelliteCenterId?: string; // For seller, buyer, logistics
 }
 
 export interface AuthState {
