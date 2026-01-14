@@ -3,10 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { mockListings, mockTransactions, produceList } from '@/lib/mockData';
+import { mockListings, mockTransactions, produceList, mockUsers } from '@/lib/mockData';
 import ListingCard from '@/components/ListingCard';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import DeliveryTrackingList from '@/components/DeliveryTrackingList';
+import AdminUserManagement from '@/components/AdminUserManagement';
 
 const AdminDashboard = () => {
   const [filterProduce, setFilterProduce] = useState('all');
@@ -88,11 +89,12 @@ const AdminDashboard = () => {
       </Card>
 
       <Tabs defaultValue="active" className="space-y-4">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="active">Active ({filteredActive.length})</TabsTrigger>
           <TabsTrigger value="expired">Expired ({filteredExpired.length})</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="tracking">Live Tracking</TabsTrigger>
+          <TabsTrigger value="users">Users ({mockUsers.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">
@@ -154,6 +156,10 @@ const AdminDashboard = () => {
 
       <TabsContent value="tracking" className="space-y-4">
         <DeliveryTrackingList filterByRole="admin" />
+      </TabsContent>
+
+      <TabsContent value="users" className="space-y-4">
+        <AdminUserManagement />
       </TabsContent>
     </Tabs>
   </div>

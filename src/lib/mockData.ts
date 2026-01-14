@@ -328,3 +328,22 @@ export const updateBid = (id: string, updates: Partial<Bid>) => {
 export const addTransaction = (transaction: Transaction) => {
   mockTransactions.push(transaction);
 };
+
+// User management functions
+export const addUser = (user: User) => {
+  mockUsers.push(user);
+};
+
+export const updateUser = (id: string, updates: Partial<User>) => {
+  const index = mockUsers.findIndex(u => u.id === id);
+  if (index !== -1) {
+    mockUsers[index] = { ...mockUsers[index], ...updates };
+  }
+};
+
+export const deleteUser = (id: string) => {
+  const index = mockUsers.findIndex(u => u.id === id);
+  if (index !== -1) {
+    mockUsers.splice(index, 1);
+  }
+};

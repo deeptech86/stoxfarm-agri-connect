@@ -10,6 +10,7 @@ export interface User {
   address: string;
   profilePic?: string;
   notes?: string;
+  cropsSupported?: string[]; // Only for sellers
 }
 
 export interface AuthState {
