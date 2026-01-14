@@ -94,7 +94,6 @@ const AdminDashboard = () => {
           <TabsTrigger value="expired">Expired ({filteredExpired.length})</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="tracking">Live Tracking</TabsTrigger>
-          <TabsTrigger value="users">Users ({mockUsers.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">
@@ -157,11 +156,16 @@ const AdminDashboard = () => {
       <TabsContent value="tracking" className="space-y-4">
         <DeliveryTrackingList filterByRole="admin" />
       </TabsContent>
-
-      <TabsContent value="users" className="space-y-4">
-        <AdminUserManagement />
-      </TabsContent>
     </Tabs>
+
+      {/* User Management Section */}
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold">User Management</h2>
+          <p className="text-muted-foreground">Create, modify, or delete users ({mockUsers.length} total)</p>
+        </div>
+        <AdminUserManagement />
+      </div>
   </div>
   );
 };
