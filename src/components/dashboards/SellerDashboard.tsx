@@ -2,14 +2,57 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { mockListings, mockBids } from '@/lib/mockData';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Plus, Info } from 'lucide-react';
+import { mockListings, mockBids, mockUsers, mockSatelliteCenters } from '@/lib/mockData';
 import ListingCard from '@/components/ListingCard';
 import CreateListingDialog from '@/components/CreateListingDialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import BidManagementDialog from '@/components/BidManagementDialog';
 import { Bid } from '@/types/produce';
 import DeliveryTrackingList from '@/components/DeliveryTrackingList';
+
+// Helper function to calculate seller's net amount
+const calculateSellerNetAmount = (
+  bid: Bid,
+  produceName: string,
+  sellerId: string
+) => {
+  const grossAmount = bid.quantity * bid.pricePerUnit;
+
+  // Get GST from seller's crop details
+  const seller = mockUsers.find(u => u.id === sellerId);
+  let gstPercentage = 0;
+  if (seller?.cropDetails) {
+    const cropDetail = seller.cropDetails.find(c => c.cropName === produceName);
+    if (cropDetail) {
+      gstPercentage = cropDetail.gst;
+    }
+  }
+
+  // Get platform fee from seller's satellite center
+  let platformFeePercentage = 0;
+  if (seller?.satelliteCenterId) {
+    const center = mockSatelliteCenters.find(c => c.id === seller.satelliteCenterId);
+    if (center) {
+      platformFeePercentage = center.platformFee;
+    }
+  }
+
+  const gstDeduction = (grossAmount * gstPercentage) / 100;
+  const platformFeeDeduction = (grossAmount * platformFeePercentage) / 100;
+  const netAmount = grossAmount - gstDeduction - platformFeeDeduction;
+
+  return {
+    grossAmount,
+    gstPercentage,
+    gstDeduction,
+    platformFeePercentage,
+    platformFeeDeduction,
+    netAmount,
+    hasDeductions: gstPercentage > 0 || platformFeePercentage > 0,
+  };
+};
 
 const SellerDashboard = () => {
   const { user } = useAuth();
@@ -87,16 +130,59 @@ const SellerDashboard = () => {
               <TableBody>
                 {pendingBids.map(bid => {
                   const listing = myListings.find(l => l.id === bid.listingId);
+                  const breakdown = calculateSellerNetAmount(
+                    bid,
+                    listing?.produceName || '',
+                    user?.id || ''
+                  );
                   return (
                     <TableRow key={bid.id}>
                       <TableCell>{bid.buyerName}</TableCell>
                       <TableCell>{listing?.produceName}</TableCell>
                       <TableCell>{bid.quantity} kg</TableCell>
                       <TableCell>₹{bid.pricePerUnit}</TableCell>
-                      <TableCell>₹{(bid.quantity * bid.pricePerUnit).toFixed(2)}</TableCell>
                       <TableCell>
-                        <Button 
-                          size="sm" 
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium">₹{breakdown.netAmount.toFixed(2)}</span>
+                          {breakdown.hasDeductions && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-[280px] p-3">
+                                  <div className="space-y-2 text-sm">
+                                    <p className="font-semibold border-b pb-1">Amount Breakdown</p>
+                                    <div className="flex justify-between">
+                                      <span>Gross Amount:</span>
+                                      <span>₹{breakdown.grossAmount.toFixed(2)}</span>
+                                    </div>
+                                    {breakdown.gstPercentage > 0 && (
+                                      <div className="flex justify-between text-destructive">
+                                        <span>GST ({breakdown.gstPercentage}%):</span>
+                                        <span>-₹{breakdown.gstDeduction.toFixed(2)}</span>
+                                      </div>
+                                    )}
+                                    {breakdown.platformFeePercentage > 0 && (
+                                      <div className="flex justify-between text-destructive">
+                                        <span>Platform Fee ({breakdown.platformFeePercentage}%):</span>
+                                        <span>-₹{breakdown.platformFeeDeduction.toFixed(2)}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex justify-between font-semibold border-t pt-1 text-green-600">
+                                      <span>You Receive:</span>
+                                      <span>₹{breakdown.netAmount.toFixed(2)}</span>
+                                    </div>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
                           onClick={() => {
                             setSelectedBid(bid);
                             setSelectedProduceName(listing?.produceName || '');

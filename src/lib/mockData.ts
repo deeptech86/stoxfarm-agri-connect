@@ -1,5 +1,6 @@
 import { User } from '@/types/user';
 import { Produce, Listing, Bid, Transaction, ListingStatus } from '@/types/produce';
+import { SatelliteCenter } from '@/types/satellite';
 
 const getExpiryDate = (daysFromNow: number = 7) => {
   const date = new Date();
@@ -43,6 +44,13 @@ export const mockUsers: User[] = [
     address: 'Village Rampur, Punjab',
     profilePic: '',
     notes: 'Organic farmer specializing in vegetables',
+    satelliteCenterId: 'sc-1',
+    satelliteCenterName: 'Mumbai Central Hub',
+    cropDetails: [
+      { cropName: 'Tomatoes', gst: 5, overallQuantity: 5000, minQuantity: 50 },
+      { cropName: 'Onions', gst: 5, overallQuantity: 10000, minQuantity: 100 },
+    ],
+    cropsSupported: ['Tomatoes', 'Onions'],
   },
   {
     id: 'seller-2',
@@ -54,6 +62,13 @@ export const mockUsers: User[] = [
     address: 'Village Kolhapur, Maharashtra',
     profilePic: '',
     notes: 'Premium quality produce',
+    satelliteCenterId: 'sc-1',
+    satelliteCenterName: 'Mumbai Central Hub',
+    cropDetails: [
+      { cropName: 'Carrots', gst: 5, overallQuantity: 8000, minQuantity: 80 },
+      { cropName: 'Cabbage', gst: 5, overallQuantity: 6000, minQuantity: 60 },
+    ],
+    cropsSupported: ['Carrots', 'Cabbage'],
   },
   {
     id: 'seller-3',
@@ -65,6 +80,13 @@ export const mockUsers: User[] = [
     address: 'Village Warangal, Telangana',
     profilePic: '',
     notes: 'Traditional farming methods',
+    satelliteCenterId: 'sc-3',
+    satelliteCenterName: 'Bangalore Agri Hub',
+    cropDetails: [
+      { cropName: 'Potatoes', gst: 5, overallQuantity: 20000, minQuantity: 200 },
+      { cropName: 'Brinjal', gst: 5, overallQuantity: 5000, minQuantity: 50 },
+    ],
+    cropsSupported: ['Potatoes', 'Brinjal'],
   },
   {
     id: 'seller-4',
@@ -76,6 +98,13 @@ export const mockUsers: User[] = [
     address: 'Village Meerut, Uttar Pradesh',
     profilePic: '',
     notes: 'Export quality vegetables',
+    satelliteCenterId: 'sc-2',
+    satelliteCenterName: 'Delhi North Center',
+    cropDetails: [
+      { cropName: 'Cabbage', gst: 5, overallQuantity: 6000, minQuantity: 60 },
+      { cropName: 'Spinach', gst: 0, overallQuantity: 3000, minQuantity: 30 },
+    ],
+    cropsSupported: ['Cabbage', 'Spinach'],
   },
   {
     id: 'seller-5',
@@ -87,6 +116,13 @@ export const mockUsers: User[] = [
     address: 'Village Kochi, Kerala',
     profilePic: '',
     notes: 'Certified organic farmer',
+    satelliteCenterId: 'sc-4',
+    satelliteCenterName: 'Chennai Distribution Center',
+    cropDetails: [
+      { cropName: 'Cauliflower', gst: 5, overallQuantity: 4000, minQuantity: 40 },
+      { cropName: 'Okra', gst: 5, overallQuantity: 3000, minQuantity: 30 },
+    ],
+    cropsSupported: ['Cauliflower', 'Okra'],
   },
   // 10 Buyers
   {
@@ -99,6 +135,8 @@ export const mockUsers: User[] = [
     address: 'Azadpur Mandi, Delhi',
     profilePic: '',
     notes: 'Wholesale vegetable dealer',
+    satelliteCenterId: 'sc-2',
+    satelliteCenterName: 'Delhi North Center',
   },
   {
     id: 'buyer-2',
@@ -110,6 +148,8 @@ export const mockUsers: User[] = [
     address: 'Vashi Market, Mumbai',
     profilePic: '',
     notes: 'Retail chain buyer',
+    satelliteCenterId: 'sc-1',
+    satelliteCenterName: 'Mumbai Central Hub',
   },
   {
     id: 'buyer-3',
@@ -121,6 +161,8 @@ export const mockUsers: User[] = [
     address: 'Koyambedu Market, Chennai',
     profilePic: '',
     notes: 'Restaurant supplier',
+    satelliteCenterId: 'sc-4',
+    satelliteCenterName: 'Chennai Distribution Center',
   },
   {
     id: 'buyer-4',
@@ -132,6 +174,8 @@ export const mockUsers: User[] = [
     address: 'Yeshwanthpur Market, Bangalore',
     profilePic: '',
     notes: 'Hotel chain procurement',
+    satelliteCenterId: 'sc-3',
+    satelliteCenterName: 'Bangalore Agri Hub',
   },
   {
     id: 'buyer-5',
@@ -143,6 +187,8 @@ export const mockUsers: User[] = [
     address: 'Market Yard, Pune',
     profilePic: '',
     notes: 'Wholesale distributor',
+    satelliteCenterId: 'sc-5',
+    satelliteCenterName: 'Pune Collection Point',
   },
   {
     id: 'buyer-6',
@@ -154,6 +200,8 @@ export const mockUsers: User[] = [
     address: 'Sabzi Mandi, Ahmedabad',
     profilePic: '',
     notes: 'Export business owner',
+    satelliteCenterId: 'sc-1',
+    satelliteCenterName: 'Mumbai Central Hub',
   },
   {
     id: 'buyer-7',
@@ -165,6 +213,8 @@ export const mockUsers: User[] = [
     address: 'Rythu Bazaar, Hyderabad',
     profilePic: '',
     notes: 'Supermarket chain buyer',
+    satelliteCenterId: 'sc-3',
+    satelliteCenterName: 'Bangalore Agri Hub',
   },
   {
     id: 'buyer-8',
@@ -176,6 +226,8 @@ export const mockUsers: User[] = [
     address: 'Subzi Mandi, Kolkata',
     profilePic: '',
     notes: 'Wholesale vegetable trader',
+    satelliteCenterId: 'sc-2',
+    satelliteCenterName: 'Delhi North Center',
   },
   {
     id: 'buyer-9',
@@ -187,6 +239,8 @@ export const mockUsers: User[] = [
     address: 'Gandhi Market, Jaipur',
     profilePic: '',
     notes: 'Organic store owner',
+    satelliteCenterId: 'sc-2',
+    satelliteCenterName: 'Delhi North Center',
   },
   {
     id: 'buyer-10',
@@ -198,6 +252,8 @@ export const mockUsers: User[] = [
     address: 'Mananchira Market, Calicut',
     profilePic: '',
     notes: 'Food processing company',
+    satelliteCenterId: 'sc-4',
+    satelliteCenterName: 'Chennai Distribution Center',
   },
   // 2 Logistics
   {
@@ -210,6 +266,8 @@ export const mockUsers: User[] = [
     address: 'Transport Nagar, Mumbai',
     profilePic: '',
     notes: 'Cold chain logistics specialist',
+    satelliteCenterId: 'sc-1',
+    satelliteCenterName: 'Mumbai Central Hub',
   },
   {
     id: 'logistics-2',
@@ -221,6 +279,8 @@ export const mockUsers: User[] = [
     address: 'Logistics Hub, Delhi',
     profilePic: '',
     notes: 'Pan-India delivery network',
+    satelliteCenterId: 'sc-2',
+    satelliteCenterName: 'Delhi North Center',
   },
 ];
 
@@ -329,6 +389,26 @@ export const addTransaction = (transaction: Transaction) => {
   mockTransactions.push(transaction);
 };
 
+export const updateTransaction = (id: string, updates: Partial<Transaction>) => {
+  mockTransactions = mockTransactions.map(t => t.id === id ? { ...t, ...updates } : t);
+};
+
+export const updateTransactionPaymentStatus = (bidId: string, buyerId: string) => {
+  // Find the transaction by matching buyer and mark as paid
+  mockTransactions = mockTransactions.map(t => {
+    if (t.buyerId === buyerId && t.paymentStatus === 'pending') {
+      return { ...t, paymentStatus: 'completed' as const };
+    }
+    return t;
+  });
+};
+
+export const markSellerPaid = (transactionId: string) => {
+  mockTransactions = mockTransactions.map(t =>
+    t.id === transactionId ? { ...t, sellerPaid: true } : t
+  );
+};
+
 // User management functions
 export const addUser = (user: User) => {
   mockUsers.push(user);
@@ -345,5 +425,77 @@ export const deleteUser = (id: string) => {
   const index = mockUsers.findIndex(u => u.id === id);
   if (index !== -1) {
     mockUsers.splice(index, 1);
+  }
+};
+
+// Satellite Center data
+export const mockSatelliteCenters: SatelliteCenter[] = [
+  {
+    id: 'sc-1',
+    name: 'Mumbai Central Hub',
+    address: 'Plot 45, APMC Market, Vashi, Navi Mumbai, Maharashtra 400703',
+    officePhone: '+91 22 2784 5612',
+    platformFee: 2.5,
+    createdAt: new Date('2024-01-15'),
+    updatedAt: new Date('2024-01-15'),
+  },
+  {
+    id: 'sc-2',
+    name: 'Delhi North Center',
+    address: 'Gate No. 3, Azadpur Mandi, Delhi 110033',
+    officePhone: '+91 11 2720 3456',
+    platformFee: 2.0,
+    createdAt: new Date('2024-02-10'),
+    updatedAt: new Date('2024-02-10'),
+  },
+  {
+    id: 'sc-3',
+    name: 'Bangalore Agri Hub',
+    address: 'Yeshwanthpur APMC, Tumkur Road, Bangalore, Karnataka 560022',
+    officePhone: '+91 80 2839 7654',
+    platformFee: 2.5,
+    createdAt: new Date('2024-03-05'),
+    updatedAt: new Date('2024-03-05'),
+  },
+  {
+    id: 'sc-4',
+    name: 'Chennai Distribution Center',
+    address: 'Koyambedu Wholesale Market, Chennai, Tamil Nadu 600107',
+    officePhone: '+91 44 2475 8901',
+    platformFee: 3.0,
+    createdAt: new Date('2024-04-20'),
+    updatedAt: new Date('2024-04-20'),
+  },
+  {
+    id: 'sc-5',
+    name: 'Pune Collection Point',
+    address: 'Market Yard, Gultekdi, Pune, Maharashtra 411037',
+    officePhone: '+91 20 2426 1234',
+    platformFee: 2.0,
+    createdAt: new Date('2024-05-12'),
+    updatedAt: new Date('2024-05-12'),
+  },
+];
+
+// Satellite Center management functions
+export const addSatelliteCenter = (center: SatelliteCenter) => {
+  mockSatelliteCenters.push(center);
+};
+
+export const updateSatelliteCenter = (id: string, updates: Partial<SatelliteCenter>) => {
+  const index = mockSatelliteCenters.findIndex(c => c.id === id);
+  if (index !== -1) {
+    mockSatelliteCenters[index] = {
+      ...mockSatelliteCenters[index],
+      ...updates,
+      updatedAt: new Date(),
+    };
+  }
+};
+
+export const deleteSatelliteCenter = (id: string) => {
+  const index = mockSatelliteCenters.findIndex(c => c.id === id);
+  if (index !== -1) {
+    mockSatelliteCenters.splice(index, 1);
   }
 };

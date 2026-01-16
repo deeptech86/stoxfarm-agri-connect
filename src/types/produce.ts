@@ -32,6 +32,8 @@ export interface Bid {
   createdAt: Date;
 }
 
+export type PaymentStatus = 'pending' | 'completed';
+
 export interface Transaction {
   id: string;
   sellerId: string;
@@ -40,6 +42,11 @@ export interface Transaction {
   buyerName: string;
   produceName: string;
   quantity: number;
-  totalAmount: number;
+  pricePerUnit: number;
+  totalAmount: number;           // Base amount (quantity * pricePerUnit)
+  buyerPaidAmount: number;       // Amount buyer pays (incl. GST + Platform Fee)
+  sellerPayoutAmount: number;    // Amount seller receives (minus GST + Platform Fee)
+  paymentStatus: PaymentStatus;  // Buyer payment status
+  sellerPaid: boolean;           // Whether admin has paid the seller
   createdAt: Date;
 }

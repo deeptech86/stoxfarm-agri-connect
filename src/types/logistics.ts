@@ -11,6 +11,7 @@ export interface DeliveryDriver {
 export interface DeliveryTracking {
   id: string;
   transactionId?: string;
+  logisticsUserId?: string;
   driver: DeliveryDriver;
   status: 'pending' | 'picked_up' | 'in_transit' | 'delivered';
   origin: {
@@ -28,6 +29,7 @@ export interface DeliveryTracking {
     lng: number;
   };
   estimatedArrival: Date;
+  deliveredAt?: Date;
   produceName: string;
   quantity: number;
   sellerName: string;

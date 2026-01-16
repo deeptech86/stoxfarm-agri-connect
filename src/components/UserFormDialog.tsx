@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, UserRole, CropDetail } from '@/types/user';
 import { produceList, addUser, updateUser } from '@/lib/mockData';
+import { getCompletedDeliveryCounts } from '@/lib/mockDeliveries';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Truck } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface UserFormDialogProps {
@@ -17,6 +19,52 @@ interface UserFormDialogProps {
   user?: User | null;
   onSave: () => void;
 }
+
+// Completed Deliveries Section for Logistics Users
+const CompletedDeliveriesSection = ({ userId }: { userId: string }) => {
+  const deliveryCounts = useMemo(() => getCompletedDeliveryCounts(userId), [userId]);
+
+  return (
+    <div className="space-y-3 p-4 bg-blue-50/50 rounded-lg border border-blue-200">
+      <div className="flex items-center gap-2">
+        <Truck className="h-5 w-5 text-blue-600" />
+        <Label className="text-base font-semibold text-blue-800">Completed Deliveries</Label>
+      </div>
+      <Tabs defaultValue="lastMonth" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 h-auto">
+          <TabsTrigger value="lastMonth" className="text-xs px-2 py-1.5">Last Month</TabsTrigger>
+          <TabsTrigger value="lastSixMonths" className="text-xs px-2 py-1.5">Last 6 Months</TabsTrigger>
+          <TabsTrigger value="lastYear" className="text-xs px-2 py-1.5">Last Year</TabsTrigger>
+          <TabsTrigger value="sinceInception" className="text-xs px-2 py-1.5">All Time</TabsTrigger>
+        </TabsList>
+        <TabsContent value="lastMonth" className="mt-3">
+          <div className="text-center py-4 bg-white rounded-lg border">
+            <p className="text-3xl font-bold text-blue-600">{deliveryCounts.lastMonth}</p>
+            <p className="text-sm text-muted-foreground">deliveries in the last month</p>
+          </div>
+        </TabsContent>
+        <TabsContent value="lastSixMonths" className="mt-3">
+          <div className="text-center py-4 bg-white rounded-lg border">
+            <p className="text-3xl font-bold text-blue-600">{deliveryCounts.lastSixMonths}</p>
+            <p className="text-sm text-muted-foreground">deliveries in the last 6 months</p>
+          </div>
+        </TabsContent>
+        <TabsContent value="lastYear" className="mt-3">
+          <div className="text-center py-4 bg-white rounded-lg border">
+            <p className="text-3xl font-bold text-blue-600">{deliveryCounts.lastYear}</p>
+            <p className="text-sm text-muted-foreground">deliveries in the last year</p>
+          </div>
+        </TabsContent>
+        <TabsContent value="sinceInception" className="mt-3">
+          <div className="text-center py-4 bg-white rounded-lg border">
+            <p className="text-3xl font-bold text-blue-600">{deliveryCounts.sinceInception}</p>
+            <p className="text-sm text-muted-foreground">total deliveries since inception</p>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
 
 const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProps) => {
   const { toast } = useToast();
@@ -256,6 +304,11 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
               rows={2}
             />
           </div>
+
+          {/* Completed Deliveries - Only for existing Logistics users */}
+          {user && formData.role === 'logistics' && (
+            <CompletedDeliveriesSection userId={user.id} />
+          )}
 
           {/* Crop Details Table - Only for Sellers */}
           {formData.role === 'seller' && (

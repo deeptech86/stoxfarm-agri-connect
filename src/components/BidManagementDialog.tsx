@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Bid } from '@/types/produce';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { updateBid, addTransaction, mockUsers } from '@/lib/mockData';
+import { updateBid, addTransaction, mockUsers, mockSatelliteCenters } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
-import { Check, X, MessageSquare } from 'lucide-react';
+import { Check, X, MessageSquare, Info } from 'lucide-react';
 
 interface BidManagementDialogProps {
   bid: Bid;
@@ -23,14 +24,57 @@ const BidManagementDialog = ({ bid, produceName, sellerId, open, onOpenChange }:
   const [showCounterInput, setShowCounterInput] = useState(false);
   const [counterPrice, setCounterPrice] = useState(bid.pricePerUnit.toString());
 
+  // Get GST from seller's crop details for this produce
+  const gstPercentage = useMemo(() => {
+    const seller = mockUsers.find(u => u.id === sellerId);
+    if (seller?.cropDetails) {
+      const cropDetail = seller.cropDetails.find(c => c.cropName === produceName);
+      if (cropDetail) {
+        return cropDetail.gst;
+      }
+    }
+    return 0;
+  }, [sellerId, produceName]);
+
+  // Get platform fee from seller's assigned satellite center
+  const platformFeePercentage = useMemo(() => {
+    const seller = mockUsers.find(u => u.id === sellerId);
+    if (seller?.satelliteCenterId) {
+      const center = mockSatelliteCenters.find(c => c.id === seller.satelliteCenterId);
+      if (center) {
+        return center.platformFee;
+      }
+    }
+    return 0;
+  }, [sellerId]);
+
   const handleAccept = () => {
     updateBid(bid.id, { status: 'accepted' });
-    
+
     // Create transaction
     const seller = mockUsers.find(u => u.id === sellerId);
     const buyer = mockUsers.find(u => u.id === bid.buyerId);
     const logistics = mockUsers.filter(u => u.role === 'logistics');
-    
+
+    // Calculate buyer's total (base + GST + platform fee from buyer's center)
+    const baseAmount = bid.quantity * bid.pricePerUnit;
+
+    // Get buyer's platform fee
+    let buyerPlatformFeePercentage = 0;
+    if (buyer?.satelliteCenterId) {
+      const buyerCenter = mockSatelliteCenters.find(c => c.id === buyer.satelliteCenterId);
+      if (buyerCenter) {
+        buyerPlatformFeePercentage = buyerCenter.platformFee;
+      }
+    }
+
+    const buyerGstAmount = (baseAmount * gstPercentage) / 100;
+    const buyerPlatformFeeAmount = (baseAmount * buyerPlatformFeePercentage) / 100;
+    const buyerPaidAmount = baseAmount + buyerGstAmount + buyerPlatformFeeAmount;
+
+    // Seller payout is already calculated (netAmount)
+    const sellerPayoutAmount = netAmount;
+
     addTransaction({
       id: `txn-${Date.now()}`,
       sellerId: sellerId,
@@ -39,14 +83,19 @@ const BidManagementDialog = ({ bid, produceName, sellerId, open, onOpenChange }:
       buyerName: bid.buyerName,
       produceName: produceName,
       quantity: bid.quantity,
-      totalAmount: bid.quantity * bid.pricePerUnit,
+      pricePerUnit: bid.pricePerUnit,
+      totalAmount: baseAmount,
+      buyerPaidAmount: buyerPaidAmount,
+      sellerPayoutAmount: sellerPayoutAmount,
+      paymentStatus: 'pending',
+      sellerPaid: false,
       createdAt: new Date(),
     });
 
     // Notify buyer
     addNotification(
       bid.buyerId,
-      `Your bid for ${produceName} has been accepted! Order confirmed for ${bid.quantity}kg at ₹${bid.pricePerUnit}/kg`,
+      `Your bid for ${produceName} has been accepted! Order confirmed for ${bid.quantity}kg at ₹${bid.pricePerUnit}/kg. Please complete the payment.`,
       'success'
     );
 
@@ -112,7 +161,19 @@ const BidManagementDialog = ({ bid, produceName, sellerId, open, onOpenChange }:
     onOpenChange(false);
   };
 
-  const totalAmount = bid.quantity * bid.pricePerUnit;
+  // Calculate price breakdown for seller (deductions)
+  const grossAmount = bid.quantity * bid.pricePerUnit;
+  const gstDeduction = (grossAmount * gstPercentage) / 100;
+  const platformFeeDeduction = (grossAmount * platformFeePercentage) / 100;
+  const netAmount = grossAmount - gstDeduction - platformFeeDeduction;
+
+  const hasDeductions = gstPercentage > 0 || platformFeePercentage > 0;
+
+  // Calculate net amount for counter offer
+  const counterGrossAmount = bid.quantity * parseFloat(counterPrice || '0');
+  const counterGstDeduction = (counterGrossAmount * gstPercentage) / 100;
+  const counterPlatformFeeDeduction = (counterGrossAmount * platformFeePercentage) / 100;
+  const counterNetAmount = counterGrossAmount - counterGstDeduction - counterPlatformFeeDeduction;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -136,8 +197,49 @@ const BidManagementDialog = ({ bid, produceName, sellerId, open, onOpenChange }:
           </div>
 
           <div className="p-4 bg-muted rounded-lg">
-            <Label className="text-muted-foreground">Total Amount</Label>
-            <p className="text-2xl font-bold text-primary">₹{totalAmount.toFixed(2)}</p>
+            <div className="flex items-center gap-2">
+              <Label className="text-muted-foreground">You Will Receive</Label>
+              {hasDeductions && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[280px] p-3">
+                      <div className="space-y-2 text-sm">
+                        <p className="font-semibold border-b pb-1">Amount Breakdown</p>
+                        <div className="flex justify-between">
+                          <span>Gross Amount:</span>
+                          <span>₹{grossAmount.toFixed(2)}</span>
+                        </div>
+                        {gstPercentage > 0 && (
+                          <div className="flex justify-between text-destructive">
+                            <span>GST Deduction ({gstPercentage}%):</span>
+                            <span>-₹{gstDeduction.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {platformFeePercentage > 0 && (
+                          <div className="flex justify-between text-destructive">
+                            <span>Platform Fee ({platformFeePercentage}%):</span>
+                            <span>-₹{platformFeeDeduction.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between font-semibold border-t pt-1 text-green-600">
+                          <span>Net Amount:</span>
+                          <span>₹{netAmount.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+            <p className="text-2xl font-bold text-primary">₹{netAmount.toFixed(2)}</p>
+            {hasDeductions && (
+              <p className="text-xs text-muted-foreground mt-2">
+                * After GST ({gstPercentage}%) and Platform Fee ({platformFeePercentage}%) deductions. Hover <Info className="h-3 w-3 inline" /> for breakdown.
+              </p>
+            )}
           </div>
 
           {showCounterInput && (
@@ -151,9 +253,14 @@ const BidManagementDialog = ({ bid, produceName, sellerId, open, onOpenChange }:
                 value={counterPrice}
                 onChange={(e) => setCounterPrice(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
-                New total: ₹{(bid.quantity * parseFloat(counterPrice || '0')).toFixed(2)}
-              </p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>Gross amount: ₹{counterGrossAmount.toFixed(2)}</p>
+                {hasDeductions && (
+                  <p className="text-green-600 font-medium">
+                    You will receive: ₹{counterNetAmount.toFixed(2)} (after deductions)
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -3,14 +3,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { mockListings, mockTransactions, produceList, mockUsers } from '@/lib/mockData';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { mockListings, mockTransactions, produceList, mockUsers, mockSatelliteCenters, markSellerPaid } from '@/lib/mockData';
 import ListingCard from '@/components/ListingCard';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import DeliveryTrackingList from '@/components/DeliveryTrackingList';
 import AdminUserManagement from '@/components/AdminUserManagement';
+import SatelliteCenterManagement from '@/components/SatelliteCenterManagement';
+import { useToast } from '@/hooks/use-toast';
+import { Banknote } from 'lucide-react';
 
 const AdminDashboard = () => {
+  const { toast } = useToast();
   const [filterProduce, setFilterProduce] = useState('all');
+  const [, forceUpdate] = useState(0);
+
+  const handlePaySeller = (transactionId: string, sellerName: string, amount: number) => {
+    markSellerPaid(transactionId);
+    forceUpdate(n => n + 1);
+    toast({
+      title: 'Seller Paid',
+      description: `₹${amount.toFixed(2)} has been paid to ${sellerName}.`,
+    });
+  };
   
   const activeListings = mockListings.filter(l => {
     const isExpired = new Date() > new Date(l.expiresAt);
@@ -125,14 +141,17 @@ const AdminDashboard = () => {
                     <TableHead>Seller</TableHead>
                     <TableHead>Buyer</TableHead>
                     <TableHead>Produce</TableHead>
-                    <TableHead>Quantity (kg)</TableHead>
-                    <TableHead>Amount (₹)</TableHead>
+                    <TableHead>Qty (kg)</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Buyer Paid (₹)</TableHead>
+                    <TableHead>Seller Payout (₹)</TableHead>
+                    <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {mockTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground">
                         No transactions yet
                       </TableCell>
                     </TableRow>
@@ -143,12 +162,35 @@ const AdminDashboard = () => {
                         <TableCell>{t.buyerName}</TableCell>
                         <TableCell>{t.produceName}</TableCell>
                         <TableCell>{t.quantity}</TableCell>
-                        <TableCell>₹{t.totalAmount}</TableCell>
+                        <TableCell>
+                          <Badge variant={t.paymentStatus === 'completed' ? 'default' : 'secondary'}>
+                            {t.paymentStatus === 'completed' ? 'Payment Completed' : 'Pending Payment'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>₹{t.buyerPaidAmount?.toFixed(2) || t.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell>₹{t.sellerPayoutAmount?.toFixed(2) || t.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell>
+                          {t.sellerPaid ? (
+                            <Badge variant="outline" className="text-green-600 border-green-600">
+                              Paid
+                            </Badge>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={t.paymentStatus !== 'completed'}
+                              onClick={() => handlePaySeller(t.id, t.sellerName, t.sellerPayoutAmount || t.totalAmount)}
+                            >
+                              <Banknote className="h-4 w-4 mr-1" />
+                              Pay Seller
+                            </Button>
+                          )}
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
                 </TableBody>
-            </Table>
+              </Table>
           </CardContent>
         </Card>
       </TabsContent>
@@ -165,6 +207,15 @@ const AdminDashboard = () => {
           <p className="text-muted-foreground">Create, modify, or delete users ({mockUsers.length} total)</p>
         </div>
         <AdminUserManagement />
+      </div>
+
+      {/* Satellite Center Management Section */}
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold">Satellite Center Management</h2>
+          <p className="text-muted-foreground">Manage regional collection and distribution centers ({mockSatelliteCenters.length} total)</p>
+        </div>
+        <SatelliteCenterManagement />
       </div>
   </div>
   );
