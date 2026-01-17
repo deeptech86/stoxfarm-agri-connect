@@ -41,7 +41,7 @@ const Login = () => {
               <Sprout className="h-8 w-8" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold">StoxFarm</CardTitle>
+          <CardTitle className="text-3xl font-bold">StoxxFarm</CardTitle>
           <CardDescription>Agricultural Marketplace for India</CardDescription>
         </CardHeader>
         <CardContent>
@@ -80,45 +80,45 @@ const Login = () => {
             <p className="font-semibold">Demo Credentials:</p>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <p><span className="font-medium">Admin:</span> admin@stoxfarm.com / admin123</p>
-                <Button 
-                  type="button" 
-                  size="sm" 
+                <p><span className="font-medium">Admin:</span> admin@stoxxfarm.in / admin123</p>
+                <Button
+                  type="button"
+                  size="sm"
                   variant="outline"
-                  onClick={() => handleUseCredentials('admin@stoxfarm.com', 'admin123')}
+                  onClick={() => handleUseCredentials('admin@stoxxfarm.in', 'admin123')}
                 >
                   Use
                 </Button>
               </div>
               <div className="flex items-center justify-between">
-                <p><span className="font-medium">Seller:</span> seller1@stoxfarm.com / seller123</p>
-                <Button 
-                  type="button" 
-                  size="sm" 
+                <p><span className="font-medium">Seller:</span> seller1@stoxxfarm.in / seller123</p>
+                <Button
+                  type="button"
+                  size="sm"
                   variant="outline"
-                  onClick={() => handleUseCredentials('seller1@stoxfarm.com', 'seller123')}
+                  onClick={() => handleUseCredentials('seller1@stoxxfarm.in', 'seller123')}
                 >
                   Use
                 </Button>
               </div>
               <div className="flex items-center justify-between">
-                <p><span className="font-medium">Buyer:</span> buyer1@stoxfarm.com / buyer123</p>
-                <Button 
-                  type="button" 
-                  size="sm" 
+                <p><span className="font-medium">Buyer:</span> buyer1@stoxxfarm.in / buyer123</p>
+                <Button
+                  type="button"
+                  size="sm"
                   variant="outline"
-                  onClick={() => handleUseCredentials('buyer1@stoxfarm.com', 'buyer123')}
+                  onClick={() => handleUseCredentials('buyer1@stoxxfarm.in', 'buyer123')}
                 >
                   Use
                 </Button>
               </div>
               <div className="flex items-center justify-between">
-                <p><span className="font-medium">Logistics:</span> logistics1@stoxfarm.com / logistics123</p>
-                <Button 
-                  type="button" 
-                  size="sm" 
+                <p><span className="font-medium">Logistics:</span> logistics1@stoxxfarm.in / logistics123</p>
+                <Button
+                  type="button"
+                  size="sm"
                   variant="outline"
-                  onClick={() => handleUseCredentials('logistics1@stoxfarm.com', 'logistics123')}
+                  onClick={() => handleUseCredentials('logistics1@stoxxfarm.in', 'logistics123')}
                 >
                   Use
                 </Button>

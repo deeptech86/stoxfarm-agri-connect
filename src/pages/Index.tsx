@@ -53,7 +53,7 @@ const Index = () => {
                   <div className="relative container mx-auto h-full flex items-center justify-center px-4">
                     <div className="max-w-3xl space-y-6 text-center">
                       <h1 className="text-4xl md:text-6xl font-bold text-foreground">
-                        Welcome to <span className="text-primary">StoxFarm</span>
+                        Welcome to <span className="text-primary">StoxxFarm</span>
                       </h1>
                       <p className="text-xl text-foreground">
                         Connecting farmers directly with buyers for fresh, quality produce at fair prices
@@ -82,7 +82,7 @@ const Index = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">What We Offer</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover how StoxFarm revolutionizes agricultural commerce with innovative solutions
+            Discover how StoxxFarm revolutionizes agricultural commerce with innovative solutions
           </p>
         </div>
 
@@ -145,7 +145,7 @@ const Index = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">About Us</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Meet the dedicated team behind StoxFarm
+              Meet the dedicated team behind StoxxFarm
             </p>
           </div>
 
@@ -190,7 +190,7 @@ const Index = () => {
               <h3 className="font-semibold text-xl">Daipayan</h3>
               <p className="text-sm font-medium text-primary">Tech</p>
               <p className="text-muted-foreground text-sm">
-                Daipayan leads our technical development, building and maintaining the StoxFarm platform. He ensures our systems are robust, scalable, and user-friendly, implementing innovative solutions to connect farmers and buyers seamlessly.
+                Daipayan leads our technical development, building and maintaining the StoxxFarm platform. He ensures our systems are robust, scalable, and user-friendly, implementing innovative solutions to connect farmers and buyers seamlessly.
               </p>
             </div>
           </div>
@@ -202,7 +202,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-primary">StoxFarm</h3>
+              <h3 className="text-xl font-bold text-primary">StoxxFarm</h3>
               <p className="text-muted-foreground text-sm">
                 Connecting farmers directly with buyers for fresh, quality produce at fair prices.
               </p>
@@ -223,7 +223,7 @@ const Index = () => {
             <div className="space-y-4">
               <h4 className="font-semibold text-foreground">Contact Us</h4>
               <div className="text-sm text-muted-foreground space-y-2">
-                <p>Email: contact@stoxfarm.com</p>
+                <p>Email: contact@stoxxfarm.in</p>
                 <p>Phone: 999-999-8888</p>
                 <p>Address: Bengaluru, Karnataka, India</p>
               </div>
@@ -231,7 +231,7 @@ const Index = () => {
           </div>
 
           <div className="border-t pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} StoxFarm. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} StoxxFarm. All rights reserved.</p>
           </div>
         </div>
       </footer>

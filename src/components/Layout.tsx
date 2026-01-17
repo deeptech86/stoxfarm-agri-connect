@@ -36,7 +36,7 @@ const Layout = ({ children }: LayoutProps) => {
               <Sprout className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">StoxFarm</h1>
+              <h1 className="text-xl font-bold">StoxxFarm</h1>
               <p className="text-xs text-muted-foreground capitalize">{user?.role} Portal</p>
             </div>
           </div>

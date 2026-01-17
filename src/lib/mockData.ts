@@ -24,19 +24,19 @@ export const produceList: Produce[] = [
 export const mockUsers: User[] = [
   {
     id: 'admin-1',
-    email: 'admin@stoxfarm.com',
+    email: 'admin@stoxxfarm.in',
     password: 'admin123',
     name: 'Admin User',
     role: 'admin',
     phone: '+91 9876543210',
-    address: 'StoxFarm HQ, Mumbai',
+    address: 'StoxxFarm HQ, Mumbai',
     profilePic: '',
     notes: 'Platform administrator',
   },
   // 5 Sellers
   {
     id: 'seller-1',
-    email: 'seller1@stoxfarm.com',
+    email: 'seller1@stoxxfarm.in',
     password: 'seller123',
     name: 'Rajesh Kumar',
     role: 'seller',
@@ -54,7 +54,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'seller-2',
-    email: 'seller2@stoxfarm.com',
+    email: 'seller2@stoxxfarm.in',
     password: 'seller123',
     name: 'Suresh Patil',
     role: 'seller',
@@ -72,7 +72,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'seller-3',
-    email: 'seller3@stoxfarm.com',
+    email: 'seller3@stoxxfarm.in',
     password: 'seller123',
     name: 'Ganesh Reddy',
     role: 'seller',
@@ -90,7 +90,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'seller-4',
-    email: 'seller4@stoxfarm.com',
+    email: 'seller4@stoxxfarm.in',
     password: 'seller123',
     name: 'Anil Singh',
     role: 'seller',
@@ -108,7 +108,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'seller-5',
-    email: 'seller5@stoxfarm.com',
+    email: 'seller5@stoxxfarm.in',
     password: 'seller123',
     name: 'Ravi Nair',
     role: 'seller',
@@ -127,7 +127,7 @@ export const mockUsers: User[] = [
   // 10 Buyers
   {
     id: 'buyer-1',
-    email: 'buyer1@stoxfarm.com',
+    email: 'buyer1@stoxxfarm.in',
     password: 'buyer123',
     name: 'Priya Sharma',
     role: 'buyer',
@@ -140,7 +140,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'buyer-2',
-    email: 'buyer2@stoxfarm.com',
+    email: 'buyer2@stoxxfarm.in',
     password: 'buyer123',
     name: 'Amit Gupta',
     role: 'buyer',
@@ -153,7 +153,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'buyer-3',
-    email: 'buyer3@stoxfarm.com',
+    email: 'buyer3@stoxxfarm.in',
     password: 'buyer123',
     name: 'Neha Kapoor',
     role: 'buyer',
@@ -166,7 +166,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'buyer-4',
-    email: 'buyer4@stoxfarm.com',
+    email: 'buyer4@stoxxfarm.in',
     password: 'buyer123',
     name: 'Vikram Mehta',
     role: 'buyer',
@@ -179,7 +179,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'buyer-5',
-    email: 'buyer5@stoxfarm.com',
+    email: 'buyer5@stoxxfarm.in',
     password: 'buyer123',
     name: 'Sneha Joshi',
     role: 'buyer',
@@ -192,7 +192,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'buyer-6',
-    email: 'buyer6@stoxfarm.com',
+    email: 'buyer6@stoxxfarm.in',
     password: 'buyer123',
     name: 'Rohit Desai',
     role: 'buyer',
@@ -205,7 +205,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'buyer-7',
-    email: 'buyer7@stoxfarm.com',
+    email: 'buyer7@stoxxfarm.in',
     password: 'buyer123',
     name: 'Kavita Rao',
     role: 'buyer',
@@ -218,7 +218,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'buyer-8',
-    email: 'buyer8@stoxfarm.com',
+    email: 'buyer8@stoxxfarm.in',
     password: 'buyer123',
     name: 'Sanjay Verma',
     role: 'buyer',
@@ -231,7 +231,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'buyer-9',
-    email: 'buyer9@stoxfarm.com',
+    email: 'buyer9@stoxxfarm.in',
     password: 'buyer123',
     name: 'Pooja Iyer',
     role: 'buyer',
@@ -244,7 +244,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'buyer-10',
-    email: 'buyer10@stoxfarm.com',
+    email: 'buyer10@stoxxfarm.in',
     password: 'buyer123',
     name: 'Arjun Pillai',
     role: 'buyer',
@@ -258,7 +258,7 @@ export const mockUsers: User[] = [
   // 2 Logistics
   {
     id: 'logistics-1',
-    email: 'logistics1@stoxfarm.com',
+    email: 'logistics1@stoxxfarm.in',
     password: 'logistics123',
     name: 'Express Transport Co',
     role: 'logistics',
@@ -271,7 +271,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'logistics-2',
-    email: 'logistics2@stoxfarm.com',
+    email: 'logistics2@stoxxfarm.in',
     password: 'logistics123',
     name: 'Fast Delivery Services',
     role: 'logistics',
