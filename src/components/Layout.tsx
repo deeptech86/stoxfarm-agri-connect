@@ -17,8 +17,8 @@ const Layout = ({ children }: LayoutProps) => {
   const { getUnreadCount } = useNotifications();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 

@@ -6,35 +6,34 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { mockUsers, deleteUser } from '@/lib/mockData';
-import { User, UserRole } from '@/types/user';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { useUsers, useDeleteUser, useSearchUsers } from '@/hooks/useUsers';
+import { UserResponse } from '@/services/user.service';
+import { UserRole } from '@/types/user';
+import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import UserFormDialog from './UserFormDialog';
 
 const AdminUserManagement = () => {
   const { toast } = useToast();
-  const [, forceUpdate] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<UserResponse | null>(null);
 
-  const refreshUsers = () => {
-    forceUpdate(n => n + 1);
-  };
+  // Fetch users from API (active users only by default)
+  const { data: usersData, isLoading, refetch } = useUsers(1, 100, roleFilter === 'all' ? undefined : roleFilter, false);
+  const { data: searchData, isLoading: isSearching } = useSearchUsers(searchQuery, roleFilter === 'all' ? undefined : roleFilter);
+  const deleteUserMutation = useDeleteUser();
 
-  const filteredUsers = mockUsers.filter(user => {
-    const matchesSearch = 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.phone.includes(searchQuery);
-    
+  const users = usersData?.items || [];
+  const searchResults = searchData?.items || [];
+
+  // Use search results if there's a query, otherwise use all users
+  const filteredUsers = searchQuery ? searchResults : users.filter(user => {
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    
-    return matchesSearch && matchesRole;
+    return matchesRole;
   });
 
   const getRoleBadgeVariant = (role: UserRole) => {
@@ -47,26 +46,33 @@ const AdminUserManagement = () => {
     }
   };
 
-  const handleEdit = (user: User) => {
+  const handleEdit = (user: UserResponse) => {
     setSelectedUser(user);
     setIsFormOpen(true);
   };
 
-  const handleDelete = (user: User) => {
+  const handleDelete = (user: UserResponse) => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (userToDelete) {
-      deleteUser(userToDelete.id);
-      toast({
-        title: 'User deleted',
-        description: `${userToDelete.name} has been removed from the platform.`,
-      });
-      refreshUsers();
-      setDeleteDialogOpen(false);
-      setUserToDelete(null);
+      try {
+        await deleteUserMutation.mutateAsync({ id: userToDelete.id });
+        toast({
+          title: 'User deleted',
+          description: `${userToDelete.name} has been removed from the platform.`,
+        });
+        setDeleteDialogOpen(false);
+        setUserToDelete(null);
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to delete user.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -74,6 +80,16 @@ const AdminUserManagement = () => {
     setSelectedUser(null);
     setIsFormOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -83,7 +99,7 @@ const AdminUserManagement = () => {
             <CardTitle>User Management</CardTitle>
             <CardDescription>Create, edit, or delete users on the platform</CardDescription>
           </div>
-          <Button onClick={handleCreateNew} className="gap-2">
+          <Button onClick={handleCreateNew} className="gap-2" data-testid="add-user-btn">
             <Plus className="h-4 w-4" />
             Add User
           </Button>
@@ -176,7 +192,7 @@ const AdminUserManagement = () => {
         </div>
 
         <div className="text-sm text-muted-foreground">
-          Showing {filteredUsers.length} of {mockUsers.length} users
+          Showing {filteredUsers.length} of {usersData?.total || 0} users
         </div>
       </CardContent>
 
@@ -184,7 +200,7 @@ const AdminUserManagement = () => {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         user={selectedUser}
-        onSave={refreshUsers}
+        onSave={() => refetch()}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

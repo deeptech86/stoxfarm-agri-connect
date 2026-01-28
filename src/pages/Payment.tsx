@@ -8,12 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { mockTransactions, updateTransaction } from '@/lib/mockData';
-import { CreditCard, Lock, ArrowLeft, CheckCircle, Building2 } from 'lucide-react';
+import { useUpdatePaymentStatus } from '@/hooks/useTransactions';
+import { CreditCard, Lock, ArrowLeft, CheckCircle, Building2, Loader2 } from 'lucide-react';
 
 interface PaymentState {
-  bidId: string;
-  listingId: string;
+  transactionId: string;
   produceName: string;
   sellerName: string;
   sellerId: string;
@@ -27,8 +26,8 @@ const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const updatePaymentStatus = useUpdatePaymentStatus();
 
   const paymentData = location.state as PaymentState | null;
 
@@ -109,29 +108,28 @@ const Payment = () => {
       return;
     }
 
-    setIsProcessing(true);
+    try {
+      // Update payment status to completed via backend API
+      await updatePaymentStatus.mutateAsync({
+        transactionId: paymentData.transactionId,
+        status: 'completed',
+        paymentMethod: 'card',
+        paymentReference: `PAY-${Date.now()}`,
+      });
 
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
+      setPaymentSuccess(true);
 
-    // Find and update the transaction payment status
-    const transaction = mockTransactions.find(
-      t => t.buyerId === user?.id &&
-           t.produceName === paymentData.produceName &&
-           t.paymentStatus === 'pending'
-    );
-
-    if (transaction) {
-      updateTransaction(transaction.id, { paymentStatus: 'completed' });
+      toast({
+        title: 'Payment Successful',
+        description: `Payment of ₹${paymentData.totalAmount.toFixed(2)} completed successfully.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Payment Failed',
+        description: 'There was an error processing your payment. Please try again.',
+        variant: 'destructive',
+      });
     }
-
-    setIsProcessing(false);
-    setPaymentSuccess(true);
-
-    toast({
-      title: 'Payment Successful',
-      description: `Payment of ₹${paymentData.totalAmount.toFixed(2)} completed successfully.`,
-    });
   };
 
   if (paymentSuccess) {
@@ -239,7 +237,7 @@ const Payment = () => {
                       placeholder="John Doe"
                       value={cardName}
                       onChange={(e) => setCardName(e.target.value)}
-                      disabled={isProcessing}
+                      disabled={updatePaymentStatus.isPending}
                     />
                   </div>
 
@@ -252,7 +250,7 @@ const Payment = () => {
                         value={cardNumber}
                         onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                         maxLength={19}
-                        disabled={isProcessing}
+                        disabled={updatePaymentStatus.isPending}
                       />
                       <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     </div>
@@ -267,7 +265,7 @@ const Payment = () => {
                         value={expiryDate}
                         onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
                         maxLength={5}
-                        disabled={isProcessing}
+                        disabled={updatePaymentStatus.isPending}
                       />
                     </div>
                     <div className="space-y-2">
@@ -279,7 +277,7 @@ const Payment = () => {
                         value={cvv}
                         onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
                         maxLength={4}
-                        disabled={isProcessing}
+                        disabled={updatePaymentStatus.isPending}
                       />
                     </div>
                   </div>
@@ -296,11 +294,11 @@ const Payment = () => {
                     type="submit"
                     className="w-full"
                     size="lg"
-                    disabled={isProcessing}
+                    disabled={updatePaymentStatus.isPending}
                   >
-                    {isProcessing ? (
+                    {updatePaymentStatus.isPending ? (
                       <>
-                        <span className="animate-spin mr-2">⏳</span>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Processing...
                       </>
                     ) : (

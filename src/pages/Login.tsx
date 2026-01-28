@@ -11,6 +11,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -20,15 +21,20 @@ const Login = () => {
     setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
-    const success = login(email, password);
-    if (success) {
+    setIsSubmitting(true);
+
+    try {
+      await login(email, password);
       navigate('/dashboard');
-    } else {
-      setError('Invalid email or password. Please check the demo credentials below.');
+    } catch (err: unknown) {
+      console.error('Login error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -62,7 +68,7 @@ const Login = () => {
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter password (any text)"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -71,8 +77,8 @@ const Login = () => {
             {error && (
               <p className="text-sm text-destructive">{error}</p>
             )}
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Logging in...' : 'Login'}
             </Button>
           </form>
           
@@ -91,34 +97,34 @@ const Login = () => {
                 </Button>
               </div>
               <div className="flex items-center justify-between">
-                <p><span className="font-medium">Seller:</span> seller1@stoxxfarm.in / seller123</p>
+                <p><span className="font-medium">Seller:</span> testSeller@gmail.com / seller123</p>
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
-                  onClick={() => handleUseCredentials('seller1@stoxxfarm.in', 'seller123')}
+                  onClick={() => handleUseCredentials('testSeller@gmail.com', 'seller123')}
                 >
                   Use
                 </Button>
               </div>
               <div className="flex items-center justify-between">
-                <p><span className="font-medium">Buyer:</span> buyer1@stoxxfarm.in / buyer123</p>
+                <p><span className="font-medium">Buyer:</span> BuyNow@gmail.com / buyer123</p>
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
-                  onClick={() => handleUseCredentials('buyer1@stoxxfarm.in', 'buyer123')}
+                  onClick={() => handleUseCredentials('BuyNow@gmail.com', 'buyer123')}
                 >
                   Use
                 </Button>
               </div>
               <div className="flex items-center justify-between">
-                <p><span className="font-medium">Logistics:</span> logistics1@stoxxfarm.in / logistics123</p>
+                <p><span className="font-medium">Logistics:</span> Logtest@gmail.com / logistics123</p>
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
-                  onClick={() => handleUseCredentials('logistics1@stoxxfarm.in', 'logistics123')}
+                  onClick={() => handleUseCredentials('Logtest@gmail.com', 'logistics123')}
                 >
                   Use
                 </Button>

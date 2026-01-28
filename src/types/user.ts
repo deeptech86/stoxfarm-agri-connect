@@ -11,19 +11,20 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  password: string;
   phone: string;
   role: UserRole;
   address: string;
-  profilePic?: string;
+  profile_pic?: string;
   notes?: string;
-  cropsSupported?: string[]; // Legacy - kept for compatibility
-  cropDetails?: CropDetail[]; // Detailed crop info for sellers
-  satelliteCenterName?: string; // For seller, buyer, logistics
-  satelliteCenterId?: string; // For seller, buyer, logistics
+  satellite_center_id?: string;
+  satellite_center_name?: string;
+  is_active: boolean;
+  created_at: string;
+  last_login?: string;
 }
 
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }

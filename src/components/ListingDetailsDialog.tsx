@@ -1,26 +1,34 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Listing } from '@/types/produce';
-import { User } from '@/types/user';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Package, ShoppingCart, User as UserIcon, MapPin, Phone } from 'lucide-react';
+import { Calendar, Package, User as UserIcon } from 'lucide-react';
 
 interface ListingDetailsDialogProps {
   listing: Listing;
-  seller?: User;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const ListingDetailsDialog = ({ listing, seller, open, onOpenChange }: ListingDetailsDialogProps) => {
+const ListingDetailsDialog = ({ listing, open, onOpenChange }: ListingDetailsDialogProps) => {
   const getStatusColor = () => {
     switch (listing.status) {
       case 'active': return 'bg-success/10 text-success';
       case 'pending': return 'bg-warning/10 text-warning';
-      case 'rejected': return 'bg-destructive/10 text-destructive';
+      case 'cancelled': return 'bg-destructive/10 text-destructive';
       case 'expired': return 'bg-muted text-muted-foreground';
+      case 'sold_out': return 'bg-warning/10 text-warning';
       default: return '';
     }
+  };
+
+  // Get primary image or first image
+  const primaryImage = listing.images.find(img => img.is_primary)?.image_url
+    || listing.images[0]?.image_url
+    || '/placeholder-produce.jpg';
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
   };
 
   return (
@@ -33,9 +41,9 @@ const ListingDetailsDialog = ({ listing, seller, open, onOpenChange }: ListingDe
 
         <div className="space-y-6">
           <div className="aspect-video relative overflow-hidden rounded-lg bg-muted">
-            <img 
-              src={listing.images[0]} 
-              alt={listing.produceName}
+            <img
+              src={primaryImage}
+              alt={listing.produce_name}
               className="w-full h-full object-cover"
             />
             <Badge className={`absolute top-3 right-3 ${getStatusColor()}`}>
@@ -44,16 +52,24 @@ const ListingDetailsDialog = ({ listing, seller, open, onOpenChange }: ListingDe
           </div>
 
           <div>
-            <h3 className="text-xl font-bold mb-2">{listing.produceName}</h3>
+            <h3 className="text-xl font-bold mb-2">{listing.produce_name}</h3>
+            {listing.description && (
+              <p className="text-sm text-muted-foreground mb-4">{listing.description}</p>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Mandi Rate</p>
-                <p className="text-lg font-semibold text-primary">₹{listing.mandiRate}/kg</p>
+                <p className="text-sm text-muted-foreground">Seller's Price</p>
+                <p className="text-lg font-semibold text-primary">₹{listing.item_rate}/kg</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Total Value</p>
-                <p className="text-lg font-semibold">₹{listing.mandiRate * listing.quantity}</p>
+                <p className="text-lg font-semibold">₹{listing.item_rate * listing.quantity}</p>
               </div>
+            </div>
+            <div className="mt-2 p-2 bg-muted rounded">
+              <p className="text-xs text-muted-foreground">
+                Reference Mandi Rate: <span className="font-semibold">₹{listing.mandi_rate}/kg</span>
+              </p>
             </div>
           </div>
 
@@ -64,14 +80,18 @@ const ListingDetailsDialog = ({ listing, seller, open, onOpenChange }: ListingDe
               <Package className="h-4 w-4" />
               Quantity Information
             </h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Total Quantity</p>
                 <p className="font-semibold">{listing.quantity} kg</p>
               </div>
               <div>
+                <p className="text-muted-foreground">Available</p>
+                <p className="font-semibold">{listing.available_quantity} kg</p>
+              </div>
+              <div>
                 <p className="text-muted-foreground">Minimum Order</p>
-                <p className="font-semibold">{listing.minOrderQty} kg</p>
+                <p className="font-semibold">{listing.min_order_qty} kg</p>
               </div>
             </div>
           </div>
@@ -86,16 +106,16 @@ const ListingDetailsDialog = ({ listing, seller, open, onOpenChange }: ListingDe
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Listed On</p>
-                <p className="font-semibold">{listing.createdAt.toLocaleDateString()}</p>
+                <p className="font-semibold">{formatDate(listing.created_at)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Expires On</p>
-                <p className="font-semibold">{listing.expiresAt.toLocaleDateString()}</p>
+                <p className="font-semibold">{formatDate(listing.expires_at)}</p>
               </div>
             </div>
           </div>
 
-          {seller && (
+          {listing.seller_name && (
             <>
               <Separator />
               <div className="space-y-3">
@@ -106,20 +126,16 @@ const ListingDetailsDialog = ({ listing, seller, open, onOpenChange }: ListingDe
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">Name:</span>
-                    <span className="font-semibold">{seller.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-3 w-3 text-muted-foreground" />
-                    <span className="font-semibold">{seller.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-3 w-3 text-muted-foreground" />
-                    <span className="font-semibold">{seller.address}</span>
+                    <span className="font-semibold">{listing.seller_name}</span>
                   </div>
                 </div>
               </div>
             </>
           )}
+
+          <div className="text-xs text-muted-foreground">
+            Views: {listing.view_count}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

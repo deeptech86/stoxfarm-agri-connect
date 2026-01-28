@@ -3,71 +3,40 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Info } from 'lucide-react';
-import { mockListings, mockBids, mockUsers, mockSatelliteCenters } from '@/lib/mockData';
+import { Plus, Info, Loader2 } from 'lucide-react';
+import { useSellerListings, useSellerBids } from '@/hooks/useListings';
 import ListingCard from '@/components/ListingCard';
 import CreateListingDialog from '@/components/CreateListingDialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import BidManagementDialog from '@/components/BidManagementDialog';
-import { Bid } from '@/types/produce';
+import { Bid, Listing } from '@/types/produce';
 import DeliveryTrackingList from '@/components/DeliveryTrackingList';
-
-// Helper function to calculate seller's net amount
-const calculateSellerNetAmount = (
-  bid: Bid,
-  produceName: string,
-  sellerId: string
-) => {
-  const grossAmount = bid.quantity * bid.pricePerUnit;
-
-  // Get GST from seller's crop details
-  const seller = mockUsers.find(u => u.id === sellerId);
-  let gstPercentage = 0;
-  if (seller?.cropDetails) {
-    const cropDetail = seller.cropDetails.find(c => c.cropName === produceName);
-    if (cropDetail) {
-      gstPercentage = cropDetail.gst;
-    }
-  }
-
-  // Get platform fee from seller's satellite center
-  let platformFeePercentage = 0;
-  if (seller?.satelliteCenterId) {
-    const center = mockSatelliteCenters.find(c => c.id === seller.satelliteCenterId);
-    if (center) {
-      platformFeePercentage = center.platformFee;
-    }
-  }
-
-  const gstDeduction = (grossAmount * gstPercentage) / 100;
-  const platformFeeDeduction = (grossAmount * platformFeePercentage) / 100;
-  const netAmount = grossAmount - gstDeduction - platformFeeDeduction;
-
-  return {
-    grossAmount,
-    gstPercentage,
-    gstDeduction,
-    platformFeePercentage,
-    platformFeeDeduction,
-    netAmount,
-    hasDeductions: gstPercentage > 0 || platformFeePercentage > 0,
-  };
-};
 
 const SellerDashboard = () => {
   const { user } = useAuth();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedBid, setSelectedBid] = useState<Bid | null>(null);
-  const [selectedProduceName, setSelectedProduceName] = useState('');
-  
-  const myListings = mockListings.filter(l => l.sellerId === user?.id);
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+
+  // Fetch seller's listings
+  const { data: listingsData, isLoading: listingsLoading } = useSellerListings();
+
+  // Fetch seller's bids (pending bids on their listings)
+  const { data: bidsData, isLoading: bidsLoading } = useSellerBids(1, 50, 'pending');
+
+  const myListings = listingsData?.items || [];
+  const pendingBids = bidsData?.items || [];
+
   const activeCount = myListings.filter(l => l.status === 'active').length;
   const expiredCount = myListings.filter(l => l.status === 'expired').length;
-  
-  // Get all bids for my listings
-  const myListingIds = myListings.map(l => l.id);
-  const myBids = mockBids.filter(b => myListingIds.includes(b.listingId));
-  const pendingBids = myBids.filter(b => b.status === 'pending');
+
+  if (listingsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -116,35 +85,34 @@ const SellerDashboard = () => {
             <CardDescription>Review and respond to buyer bids</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Buyer</TableHead>
-                  <TableHead>Produce</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Price/kg</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pendingBids.map(bid => {
-                  const listing = myListings.find(l => l.id === bid.listingId);
-                  const breakdown = calculateSellerNetAmount(
-                    bid,
-                    listing?.produceName || '',
-                    user?.id || ''
-                  );
-                  return (
-                    <TableRow key={bid.id}>
-                      <TableCell>{bid.buyerName}</TableCell>
-                      <TableCell>{listing?.produceName}</TableCell>
-                      <TableCell>{bid.quantity} kg</TableCell>
-                      <TableCell>₹{bid.pricePerUnit}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium">₹{breakdown.netAmount.toFixed(2)}</span>
-                          {breakdown.hasDeductions && (
+            {bidsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Buyer</TableHead>
+                    <TableHead>Produce</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Price/kg</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingBids.map(bid => {
+                    const listing = myListings.find(l => l.id === bid.listing_id);
+                    return (
+                      <TableRow key={bid.id}>
+                        <TableCell>{bid.buyer_name}</TableCell>
+                        <TableCell>{listing?.produce_name || '-'}</TableCell>
+                        <TableCell>{bid.quantity} kg</TableCell>
+                        <TableCell>₹{bid.price_per_unit}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">₹{bid.total_amount.toFixed(2)}</span>
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -154,70 +122,68 @@ const SellerDashboard = () => {
                                   <div className="space-y-2 text-sm">
                                     <p className="font-semibold border-b pb-1">Amount Breakdown</p>
                                     <div className="flex justify-between">
-                                      <span>Gross Amount:</span>
-                                      <span>₹{breakdown.grossAmount.toFixed(2)}</span>
+                                      <span>Total Amount:</span>
+                                      <span>₹{bid.total_amount.toFixed(2)}</span>
                                     </div>
-                                    {breakdown.gstPercentage > 0 && (
-                                      <div className="flex justify-between text-destructive">
-                                        <span>GST ({breakdown.gstPercentage}%):</span>
-                                        <span>-₹{breakdown.gstDeduction.toFixed(2)}</span>
-                                      </div>
-                                    )}
-                                    {breakdown.platformFeePercentage > 0 && (
-                                      <div className="flex justify-between text-destructive">
-                                        <span>Platform Fee ({breakdown.platformFeePercentage}%):</span>
-                                        <span>-₹{breakdown.platformFeeDeduction.toFixed(2)}</span>
-                                      </div>
-                                    )}
-                                    <div className="flex justify-between font-semibold border-t pt-1 text-green-600">
-                                      <span>You Receive:</span>
-                                      <span>₹{breakdown.netAmount.toFixed(2)}</span>
-                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                      GST and platform fees will be calculated at checkout
+                                    </p>
                                   </div>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setSelectedBid(bid);
-                            setSelectedProduceName(listing?.produceName || '');
-                          }}
-                        >
-                          Review
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setSelectedBid(bid);
+                              setSelectedListing(listing || null);
+                            }}
+                          >
+                            Review
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       )}
 
       <div>
         <h2 className="text-xl font-semibold mb-4">All Listings</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {myListings.map(listing => (
-            <ListingCard key={listing.id} listing={listing} showActions userRole="seller" />
-          ))}
-        </div>
+        {myListings.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              <p>You haven't created any listings yet.</p>
+              <Button variant="link" onClick={() => setShowCreateDialog(true)}>
+                Create your first listing
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {myListings.map(listing => (
+              <ListingCard key={listing.id} listing={listing} showActions userRole="seller" />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Delivery Tracking */}
       <DeliveryTrackingList filterByRole="seller" userId={user?.id} />
 
       <CreateListingDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
-      
+
       {selectedBid && (
         <BidManagementDialog
           bid={selectedBid}
-          produceName={selectedProduceName}
+          produceName={selectedListing?.produce_name || ''}
           sellerId={user?.id || ''}
           open={!!selectedBid}
           onOpenChange={(open) => !open && setSelectedBid(null)}

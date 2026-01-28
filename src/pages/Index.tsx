@@ -62,7 +62,7 @@ const Index = () => {
                         <Button size="lg" onClick={() => navigate('/login')}>
                           Get Started
                         </Button>
-                        <Button size="lg" variant="outline" onClick={() => navigate('/login')}>
+                        <Button size="lg" variant="outline" onClick={() => document.getElementById('what-we-offer')?.scrollIntoView({ behavior: 'smooth' })}>
                           Learn More
                         </Button>
                       </div>
@@ -78,7 +78,7 @@ const Index = () => {
       </section>
 
       {/* What We Offer Section */}
-      <section className="container mx-auto px-4 py-20">
+      <section id="what-we-offer" className="container mx-auto px-4 py-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">What We Offer</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

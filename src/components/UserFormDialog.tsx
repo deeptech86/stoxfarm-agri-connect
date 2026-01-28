@@ -1,82 +1,39 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, UserRole, CropDetail } from '@/types/user';
-import { produceList, addUser, updateUser } from '@/lib/mockData';
-import { getCompletedDeliveryCounts } from '@/lib/mockDeliveries';
+import { UserRole } from '@/types/user';
+import { useCreateUser, useUpdateUser } from '@/hooks/useUsers';
+import { UserResponse, CreateUserRequest, UpdateUserRequest } from '@/services/user.service';
+import { useSatelliteCenters } from '@/hooks/useSatelliteCenters';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, Truck } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Loader2 } from 'lucide-react';
 
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user?: User | null;
+  user?: UserResponse | null;
   onSave: () => void;
 }
 
-// Completed Deliveries Section for Logistics Users
-const CompletedDeliveriesSection = ({ userId }: { userId: string }) => {
-  const deliveryCounts = useMemo(() => getCompletedDeliveryCounts(userId), [userId]);
-
-  return (
-    <div className="space-y-3 p-4 bg-blue-50/50 rounded-lg border border-blue-200">
-      <div className="flex items-center gap-2">
-        <Truck className="h-5 w-5 text-blue-600" />
-        <Label className="text-base font-semibold text-blue-800">Completed Deliveries</Label>
-      </div>
-      <Tabs defaultValue="lastMonth" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-auto">
-          <TabsTrigger value="lastMonth" className="text-xs px-2 py-1.5">Last Month</TabsTrigger>
-          <TabsTrigger value="lastSixMonths" className="text-xs px-2 py-1.5">Last 6 Months</TabsTrigger>
-          <TabsTrigger value="lastYear" className="text-xs px-2 py-1.5">Last Year</TabsTrigger>
-          <TabsTrigger value="sinceInception" className="text-xs px-2 py-1.5">All Time</TabsTrigger>
-        </TabsList>
-        <TabsContent value="lastMonth" className="mt-3">
-          <div className="text-center py-4 bg-white rounded-lg border">
-            <p className="text-3xl font-bold text-blue-600">{deliveryCounts.lastMonth}</p>
-            <p className="text-sm text-muted-foreground">deliveries in the last month</p>
-          </div>
-        </TabsContent>
-        <TabsContent value="lastSixMonths" className="mt-3">
-          <div className="text-center py-4 bg-white rounded-lg border">
-            <p className="text-3xl font-bold text-blue-600">{deliveryCounts.lastSixMonths}</p>
-            <p className="text-sm text-muted-foreground">deliveries in the last 6 months</p>
-          </div>
-        </TabsContent>
-        <TabsContent value="lastYear" className="mt-3">
-          <div className="text-center py-4 bg-white rounded-lg border">
-            <p className="text-3xl font-bold text-blue-600">{deliveryCounts.lastYear}</p>
-            <p className="text-sm text-muted-foreground">deliveries in the last year</p>
-          </div>
-        </TabsContent>
-        <TabsContent value="sinceInception" className="mt-3">
-          <div className="text-center py-4 bg-white rounded-lg border">
-            <p className="text-3xl font-bold text-blue-600">{deliveryCounts.sinceInception}</p>
-            <p className="text-sm text-muted-foreground">total deliveries since inception</p>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-};
-
 const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProps) => {
   const { toast } = useToast();
+  const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
+  const { data: satelliteCentersData } = useSatelliteCenters(1, 100, undefined, undefined, true);
+  const satelliteCenters = satelliteCentersData?.items || [];
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
     phone: '',
     role: 'buyer' as UserRole,
     address: '',
     notes: '',
-    cropDetails: [] as CropDetail[],
-    satelliteCenterName: '',
     satelliteCenterId: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -86,24 +43,22 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
       setFormData({
         name: user.name,
         email: user.email || '',
+        password: '',
         phone: user.phone,
         role: user.role,
         address: user.address,
         notes: user.notes || '',
-        cropDetails: user.cropDetails || [],
-        satelliteCenterName: user.satelliteCenterName || '',
-        satelliteCenterId: user.satelliteCenterId || '',
+        satelliteCenterId: user.satellite_center_id || '',
       });
     } else {
       setFormData({
         name: '',
         email: '',
+        password: '',
         phone: '',
         role: 'buyer',
         address: '',
         notes: '',
-        cropDetails: [],
-        satelliteCenterName: '',
         satelliteCenterId: '',
       });
     }
@@ -112,9 +67,15 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    }
+    if (!user && !formData.password.trim()) {
+      newErrors.password = 'Password is required for new users';
     }
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone is required';
@@ -130,70 +91,67 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    const userData: User = {
-      id: user?.id || `user-${Date.now()}`,
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      password: user?.password || 'password123',
-      phone: formData.phone.trim(),
-      role: formData.role,
-      address: formData.address.trim(),
-      notes: formData.notes.trim(),
-      cropDetails: formData.role === 'seller' ? formData.cropDetails : undefined,
-      cropsSupported: formData.role === 'seller' ? formData.cropDetails.map(c => c.cropName) : undefined,
-      satelliteCenterName: ['seller', 'buyer', 'logistics'].includes(formData.role) ? formData.satelliteCenterName.trim() : undefined,
-      satelliteCenterId: ['seller', 'buyer', 'logistics'].includes(formData.role) ? formData.satelliteCenterId.trim() : undefined,
-    };
+    try {
+      if (user) {
+        // Only include satellite_center_id if it's a valid UUID (36 chars with dashes)
+        const satelliteId = formData.satelliteCenterId.trim();
+        const isValidUUID = satelliteId.length === 36 && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(satelliteId);
 
-    if (user) {
-      updateUser(user.id, userData);
+        const updateData: UpdateUserRequest = {
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          address: formData.address.trim(),
+          notes: formData.notes.trim() || undefined,
+          satellite_center_id: isValidUUID ? satelliteId : undefined,
+          password: formData.password.trim() || undefined,
+        };
+        await updateUserMutation.mutateAsync({ id: user.id, data: updateData });
+        toast({
+          title: 'User updated',
+          description: `${formData.name} has been updated successfully.`,
+        });
+      } else {
+        // Only include satellite_center_id if it's a valid UUID (36 chars with dashes)
+        const satelliteId = formData.satelliteCenterId.trim();
+        const isValidUUID = satelliteId.length === 36 && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(satelliteId);
+
+        const createData: CreateUserRequest = {
+          email: formData.email.trim(),
+          password: formData.password.trim(),
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          role: formData.role,
+          address: formData.address.trim(),
+          notes: formData.notes.trim() || undefined,
+          satellite_center_id: isValidUUID ? satelliteId : undefined,
+        };
+        await createUserMutation.mutateAsync(createData);
+        toast({
+          title: 'User created',
+          description: `${formData.name} has been created successfully.`,
+        });
+      }
+
+      onSave();
+      onOpenChange(false);
+    } catch (error) {
       toast({
-        title: 'User updated',
-        description: `${userData.name} has been updated successfully.`,
-      });
-    } else {
-      addUser(userData);
-      toast({
-        title: 'User created',
-        description: `${userData.name} has been created successfully.`,
+        title: 'Error',
+        description: user ? 'Failed to update user.' : 'Failed to create user.',
+        variant: 'destructive',
       });
     }
-
-    onSave();
-    onOpenChange(false);
   };
 
-  const addCropRow = () => {
-    setFormData(prev => ({
-      ...prev,
-      cropDetails: [...prev.cropDetails, { cropName: '', gst: 0, overallQuantity: 0, minQuantity: 0 }],
-    }));
-  };
-
-  const removeCropRow = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      cropDetails: prev.cropDetails.filter((_, i) => i !== index),
-    }));
-  };
-
-  const updateCropRow = (index: number, field: keyof CropDetail, value: string | number) => {
-    setFormData(prev => ({
-      ...prev,
-      cropDetails: prev.cropDetails.map((crop, i) => 
-        i === index ? { ...crop, [field]: value } : crop
-      ),
-    }));
-  };
-
+  const isSubmitting = createUserMutation.isPending || updateUserMutation.isPending;
   const showSatelliteFields = ['seller', 'buyer', 'logistics'].includes(formData.role);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{user ? 'Edit User' : 'Create New User'}</DialogTitle>
           <DialogDescription>
@@ -207,6 +165,7 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
               <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
+                data-testid="user-name-input"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Enter full name"
@@ -215,15 +174,33 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 type="email"
+                data-testid="user-email-input"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="Enter email address"
+                disabled={!!user}
               />
+              {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">
+              {user ? 'New Password (leave blank to keep current)' : 'Password *'}
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              data-testid="user-password-input"
+              value={formData.password}
+              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+              placeholder={user ? 'Enter new password to change' : 'Enter password'}
+            />
+            {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -232,8 +209,9 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
               <Select
                 value={formData.role}
                 onValueChange={(value: UserRole) => setFormData(prev => ({ ...prev, role: value }))}
+                disabled={!!user}
               >
-                <SelectTrigger id="role">
+                <SelectTrigger id="role" data-testid="user-role-select">
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -250,6 +228,7 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
               <Label htmlFor="phone">Phone *</Label>
               <Input
                 id="phone"
+                data-testid="user-phone-input"
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                 placeholder="Enter phone number"
@@ -262,6 +241,7 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
             <Label htmlFor="address">Address *</Label>
             <Textarea
               id="address"
+              data-testid="user-address-input"
               value={formData.address}
               onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
               placeholder="Enter full address"
@@ -270,27 +250,25 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
             {errors.address && <p className="text-sm text-destructive">{errors.address}</p>}
           </div>
 
-          {/* Satellite Center Fields - for Seller, Buyer, Logistics */}
           {showSatelliteFields && (
-            <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-              <div className="space-y-2">
-                <Label htmlFor="satelliteCenterName">Satellite Center Name</Label>
-                <Input
-                  id="satelliteCenterName"
-                  value={formData.satelliteCenterName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, satelliteCenterName: e.target.value }))}
-                  placeholder="Enter center name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="satelliteCenterId">Center ID</Label>
-                <Input
-                  id="satelliteCenterId"
-                  value={formData.satelliteCenterId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, satelliteCenterId: e.target.value }))}
-                  placeholder="Enter center ID"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="satelliteCenterId">Satellite Center</Label>
+              <Select
+                value={formData.satelliteCenterId || "none"}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, satelliteCenterId: value === "none" ? "" : value }))}
+              >
+                <SelectTrigger id="satelliteCenterId">
+                  <SelectValue placeholder="Select satellite center (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {satelliteCenters.map((center) => (
+                    <SelectItem key={center.id} value={center.id}>
+                      {center.name} - {center.city || center.address}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
@@ -304,121 +282,21 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
               rows={2}
             />
           </div>
-
-          {/* Completed Deliveries - Only for existing Logistics users */}
-          {user && formData.role === 'logistics' && (
-            <CompletedDeliveriesSection userId={user.id} />
-          )}
-
-          {/* Crop Details Table - Only for Sellers */}
-          {formData.role === 'seller' && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Crops Supported</Label>
-                <Button type="button" variant="outline" size="sm" onClick={addCropRow}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Crop
-                </Button>
-              </div>
-              
-              {formData.cropDetails.length > 0 ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="w-[180px]">Crop Name</TableHead>
-                        <TableHead className="w-[100px]">GST (%)</TableHead>
-                        <TableHead className="w-[130px]">Overall Qty (kg)</TableHead>
-                        <TableHead className="w-[130px]">Min Qty (kg)</TableHead>
-                        <TableHead className="w-[60px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {formData.cropDetails.map((crop, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="p-2">
-                            <Select
-                              value={crop.cropName}
-                              onValueChange={(value) => updateCropRow(index, 'cropName', value)}
-                            >
-                              <SelectTrigger className="h-9">
-                                <SelectValue placeholder="Select crop" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {produceList.map(p => (
-                                  <SelectItem 
-                                    key={p.id} 
-                                    value={p.name}
-                                    disabled={formData.cropDetails.some((c, i) => i !== index && c.cropName === p.name)}
-                                  >
-                                    {p.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell className="p-2">
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.1"
-                              value={crop.gst}
-                              onChange={(e) => updateCropRow(index, 'gst', parseFloat(e.target.value) || 0)}
-                              className="h-9"
-                              placeholder="GST %"
-                            />
-                          </TableCell>
-                          <TableCell className="p-2">
-                            <Input
-                              type="number"
-                              min="0"
-                              value={crop.overallQuantity}
-                              onChange={(e) => updateCropRow(index, 'overallQuantity', parseInt(e.target.value) || 0)}
-                              className="h-9"
-                              placeholder="Quantity"
-                            />
-                          </TableCell>
-                          <TableCell className="p-2">
-                            <Input
-                              type="number"
-                              min="0"
-                              value={crop.minQuantity}
-                              onChange={(e) => updateCropRow(index, 'minQuantity', parseInt(e.target.value) || 0)}
-                              className="h-9"
-                              placeholder="Min qty"
-                            />
-                          </TableCell>
-                          <TableCell className="p-2">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
-                              onClick={() => removeCropRow(index)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-sm text-muted-foreground text-center py-4 border rounded-lg border-dashed">
-                  No crops added. Click "Add Crop" to add crop details.
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>
-            {user ? 'Update' : 'Create'} User
+          <Button onClick={handleSubmit} disabled={isSubmitting} data-testid="save-user-btn">
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {user ? 'Updating...' : 'Creating...'}
+              </>
+            ) : (
+              <>{user ? 'Update' : 'Create'} User</>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

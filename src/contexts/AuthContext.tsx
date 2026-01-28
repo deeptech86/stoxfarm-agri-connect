@@ -1,40 +1,121 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { User } from '@/types/user';
-import { mockUsers } from '@/lib/mockData';
+import { authService, UserResponse } from '@/services/auth.service';
+import { getStoredTokens } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => boolean;
-  logout: () => void;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Convert API response to User type
+const mapUserResponse = (response: UserResponse): User => ({
+  id: response.id,
+  name: response.name,
+  email: response.email,
+  phone: response.phone,
+  role: response.role as User['role'],
+  address: response.address,
+  profile_pic: response.profile_pic,
+  notes: response.notes,
+  satellite_center_id: response.satellite_center_id,
+  satellite_center_name: response.satellite_center_name,
+  is_active: response.is_active,
+  created_at: response.created_at,
+  last_login: response.last_login,
+});
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const login = (email: string, password: string): boolean => {
-    const foundUser = mockUsers.find(u => u.email === email && u.password === password);
-    if (foundUser) {
-      setUser(foundUser);
+  // Initialize auth state from stored tokens
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const tokens = getStoredTokens();
+      if (tokens?.access_token) {
+        try {
+          const userResponse = await authService.getMe();
+          setUser(mapUserResponse(userResponse));
+        } catch (error) {
+          // Token invalid or expired, clear it
+          console.error('Failed to restore session:', error);
+          await authService.logout().catch(() => {});
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+  }, []);
+
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    setIsLoading(true);
+    try {
+      // Login to get tokens
+      await authService.login({ email, password });
+      // Fetch full user profile after successful login
+      const userResponse = await authService.getMe();
+      setUser(mapUserResponse(userResponse));
       return true;
+    } catch (error: unknown) {
+      console.error('Login failed:', error);
+      // Re-throw with a user-friendly message
+      if (error && typeof error === 'object' && 'message' in error) {
+        throw new Error(String(error.message));
+      }
+      throw new Error('Login failed. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
     }
-    return false;
-  };
+  }, []);
 
-  const logout = () => {
-    setUser(null);
-  };
+  const logout = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setUser(null);
+      setIsLoading(false);
+    }
+  }, []);
 
-  const updateProfile = (updates: Partial<User>) => {
+  const updateProfile = useCallback((updates: Partial<User>) => {
     if (user) {
       setUser({ ...user, ...updates });
     }
-  };
+  }, [user]);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const userResponse = await authService.getMe();
+      setUser(mapUserResponse(userResponse));
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+    }
+  }, []);
+
+  const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateProfile }}>
+    <AuthContext.Provider value={{
+      user,
+      isLoading,
+      isAuthenticated,
+      login,
+      logout,
+      updateProfile,
+      refreshUser
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -5,46 +5,68 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { mockListings, mockTransactions, produceList, mockUsers, mockSatelliteCenters, markSellerPaid } from '@/lib/mockData';
+import { useActiveListings, useProduceList } from '@/hooks/useListings';
+import { useAllTransactions, useMarkSellerPaid } from '@/hooks/useTransactions';
+import { useUsers } from '@/hooks/useUsers';
 import ListingCard from '@/components/ListingCard';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import DeliveryTrackingList from '@/components/DeliveryTrackingList';
 import AdminUserManagement from '@/components/AdminUserManagement';
 import SatelliteCenterManagement from '@/components/SatelliteCenterManagement';
+import ProduceManagement from '@/components/ProduceManagement';
+import ListingManagement from '@/components/ListingManagement';
 import { useToast } from '@/hooks/use-toast';
-import { Banknote } from 'lucide-react';
+import { Banknote, Loader2 } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { toast } = useToast();
   const [filterProduce, setFilterProduce] = useState('all');
-  const [, forceUpdate] = useState(0);
 
-  const handlePaySeller = (transactionId: string, sellerName: string, amount: number) => {
-    markSellerPaid(transactionId);
-    forceUpdate(n => n + 1);
-    toast({
-      title: 'Seller Paid',
-      description: `₹${amount.toFixed(2)} has been paid to ${sellerName}.`,
-    });
-  };
-  
-  const activeListings = mockListings.filter(l => {
-    const isExpired = new Date() > new Date(l.expiresAt);
-    return l.status === 'active' && !isExpired;
-  });
-  
-  const expiredListings = mockListings.filter(l => {
-    const isExpired = new Date() > new Date(l.expiresAt);
-    return isExpired || l.status === 'expired';
-  });
-  
+  // Fetch data
+  const { data: produceList } = useProduceList();
+  const { data: listingsData, isLoading: listingsLoading } = useActiveListings(1, 100);
+  const { data: transactionsData, isLoading: transactionsLoading } = useAllTransactions(1, 100);
+  const { data: usersData } = useUsers(1, 100, undefined, true);
+  const markSellerPaidMutation = useMarkSellerPaid();
+
+  const allListings = listingsData?.items || [];
+  const transactions = transactionsData?.items || [];
+  const users = usersData?.items || [];
+
+  const activeListings = allListings.filter(l => l.status === 'active');
+  const expiredListings = allListings.filter(l => l.status === 'expired' || l.status === 'cancelled');
+
   const filteredActive = filterProduce === 'all'
     ? activeListings
-    : activeListings.filter(l => l.produceName === filterProduce);
-  
+    : activeListings.filter(l => l.produce_name === filterProduce);
+
   const filteredExpired = filterProduce === 'all'
     ? expiredListings
-    : expiredListings.filter(l => l.produceName === filterProduce);
+    : expiredListings.filter(l => l.produce_name === filterProduce);
+
+  const handlePaySeller = async (transactionId: string, sellerName: string, amount: number) => {
+    try {
+      await markSellerPaidMutation.mutateAsync({ transactionId });
+      toast({
+        title: 'Seller Paid',
+        description: `₹${amount.toFixed(2)} has been paid to ${sellerName}.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to mark seller as paid.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (listingsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -68,13 +90,13 @@ const AdminDashboard = () => {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">{mockTransactions.length}</CardTitle>
+            <CardTitle className="text-2xl">{transactions.length}</CardTitle>
             <CardDescription>Total Transactions</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">{mockListings.length}</CardTitle>
+            <CardTitle className="text-2xl">{allListings.length}</CardTitle>
             <CardDescription>All Listings</CardDescription>
           </CardHeader>
         </Card>
@@ -93,7 +115,7 @@ const AdminDashboard = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Produce</SelectItem>
-                {produceList.map(p => (
+                {produceList?.filter(p => p.is_active).map(p => (
                   <SelectItem key={p.id} value={p.name}>
                     {p.name}
                   </SelectItem>
@@ -135,76 +157,86 @@ const AdminDashboard = () => {
               <CardDescription>All confirmed transactions</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Seller</TableHead>
-                    <TableHead>Buyer</TableHead>
-                    <TableHead>Produce</TableHead>
-                    <TableHead>Qty (kg)</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Buyer Paid (₹)</TableHead>
-                    <TableHead>Seller Payout (₹)</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockTransactions.length === 0 ? (
+              {transactionsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-muted-foreground">
-                        No transactions yet
-                      </TableCell>
+                      <TableHead>Seller</TableHead>
+                      <TableHead>Buyer</TableHead>
+                      <TableHead>Produce</TableHead>
+                      <TableHead>Qty (kg)</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Buyer Paid (₹)</TableHead>
+                      <TableHead>Seller Payout (₹)</TableHead>
+                      <TableHead>Action</TableHead>
                     </TableRow>
-                  ) : (
-                    mockTransactions.map(t => (
-                      <TableRow key={t.id}>
-                        <TableCell>{t.sellerName}</TableCell>
-                        <TableCell>{t.buyerName}</TableCell>
-                        <TableCell>{t.produceName}</TableCell>
-                        <TableCell>{t.quantity}</TableCell>
-                        <TableCell>
-                          <Badge variant={t.paymentStatus === 'completed' ? 'default' : 'secondary'}>
-                            {t.paymentStatus === 'completed' ? 'Payment Completed' : 'Pending Payment'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>₹{t.buyerPaidAmount?.toFixed(2) || t.totalAmount.toFixed(2)}</TableCell>
-                        <TableCell>₹{t.sellerPayoutAmount?.toFixed(2) || t.totalAmount.toFixed(2)}</TableCell>
-                        <TableCell>
-                          {t.sellerPaid ? (
-                            <Badge variant="outline" className="text-green-600 border-green-600">
-                              Paid
-                            </Badge>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={t.paymentStatus !== 'completed'}
-                              onClick={() => handlePaySeller(t.id, t.sellerName, t.sellerPayoutAmount || t.totalAmount)}
-                            >
-                              <Banknote className="h-4 w-4 mr-1" />
-                              Pay Seller
-                            </Button>
-                          )}
+                  </TableHeader>
+                  <TableBody>
+                    {transactions.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center text-muted-foreground">
+                          No transactions yet
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-          </CardContent>
-        </Card>
-      </TabsContent>
+                    ) : (
+                      transactions.map(t => (
+                        <TableRow key={t.id}>
+                          <TableCell>{t.seller_name}</TableCell>
+                          <TableCell>{t.buyer_name}</TableCell>
+                          <TableCell>{t.produce_name}</TableCell>
+                          <TableCell>{t.quantity}</TableCell>
+                          <TableCell>
+                            <Badge variant={t.payment_status === 'completed' ? 'default' : 'secondary'}>
+                              {t.payment_status === 'completed' ? 'Payment Completed' : 'Pending Payment'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>₹{t.buyer_total_amount.toFixed(2)}</TableCell>
+                          <TableCell>₹{t.seller_payout_amount.toFixed(2)}</TableCell>
+                          <TableCell>
+                            {t.seller_paid ? (
+                              <Badge variant="outline" className="text-green-600 border-green-600">
+                                Paid
+                              </Badge>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={t.payment_status !== 'completed' || markSellerPaidMutation.isPending}
+                                onClick={() => handlePaySeller(t.id, t.seller_name, t.seller_payout_amount)}
+                              >
+                                {markSellerPaidMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                ) : (
+                                  <Banknote className="h-4 w-4 mr-1" />
+                                )}
+                                Pay Seller
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <TabsContent value="tracking" className="space-y-4">
-        <DeliveryTrackingList filterByRole="admin" />
-      </TabsContent>
-    </Tabs>
+        <TabsContent value="tracking" className="space-y-4">
+          <DeliveryTrackingList filterByRole="admin" />
+        </TabsContent>
+      </Tabs>
 
       {/* User Management Section */}
       <div className="pt-6 border-t">
         <div className="mb-4">
           <h2 className="text-2xl font-bold">User Management</h2>
-          <p className="text-muted-foreground">Create, modify, or delete users ({mockUsers.length} total)</p>
+          <p className="text-muted-foreground">Create, modify, or delete users ({users.length} total)</p>
         </div>
         <AdminUserManagement />
       </div>
@@ -213,11 +245,29 @@ const AdminDashboard = () => {
       <div className="pt-6 border-t">
         <div className="mb-4">
           <h2 className="text-2xl font-bold">Satellite Center Management</h2>
-          <p className="text-muted-foreground">Manage regional collection and distribution centers ({mockSatelliteCenters.length} total)</p>
+          <p className="text-muted-foreground">Manage regional collection and distribution centers</p>
         </div>
         <SatelliteCenterManagement />
       </div>
-  </div>
+
+      {/* Produce Management Section */}
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold">Produce Management</h2>
+          <p className="text-muted-foreground">Create, edit, or delete produce items available for listing</p>
+        </div>
+        <ProduceManagement />
+      </div>
+
+      {/* Listing Management Section */}
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold">Listing Management</h2>
+          <p className="text-muted-foreground">Create and manage marketplace listings on behalf of sellers</p>
+        </div>
+        <ListingManagement />
+      </div>
+    </div>
   );
 };
 

@@ -4,24 +4,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { SatelliteCenter } from '@/types/satellite';
-import { addSatelliteCenter, updateSatelliteCenter } from '@/lib/mockData';
+import { SatelliteCenterResponse, CreateSatelliteCenterRequest, UpdateSatelliteCenterRequest } from '@/services/satellite-center.service';
+import { useCreateSatelliteCenter, useUpdateSatelliteCenter } from '@/hooks/useSatelliteCenters';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 interface SatelliteCenterFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  center?: SatelliteCenter | null;
+  center?: SatelliteCenterResponse | null;
   onSave: () => void;
 }
 
 const SatelliteCenterFormDialog = ({ open, onOpenChange, center, onSave }: SatelliteCenterFormDialogProps) => {
   const { toast } = useToast();
+  const createCenterMutation = useCreateSatelliteCenter();
+  const updateCenterMutation = useUpdateSatelliteCenter();
+
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    officePhone: '',
-    platformFee: 2.5,
+    office_phone: '',
+    platform_fee: '2.5',
+    city: '',
+    state: '',
+    pincode: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -30,15 +37,21 @@ const SatelliteCenterFormDialog = ({ open, onOpenChange, center, onSave }: Satel
       setFormData({
         name: center.name,
         address: center.address,
-        officePhone: center.officePhone,
-        platformFee: center.platformFee,
+        office_phone: center.office_phone,
+        platform_fee: center.platform_fee,
+        city: center.city || '',
+        state: center.state || '',
+        pincode: center.pincode || '',
       });
     } else {
       setFormData({
         name: '',
         address: '',
-        officePhone: '',
-        platformFee: 2.5,
+        office_phone: '',
+        platform_fee: '2.5',
+        city: '',
+        state: '',
+        pincode: '',
       });
     }
     setErrors({});
@@ -53,47 +66,66 @@ const SatelliteCenterFormDialog = ({ open, onOpenChange, center, onSave }: Satel
     if (!formData.address.trim()) {
       newErrors.address = 'Address is required';
     }
-    if (!formData.officePhone.trim()) {
-      newErrors.officePhone = 'Office phone is required';
+    if (!formData.office_phone.trim()) {
+      newErrors.office_phone = 'Office phone is required';
     }
-    if (formData.platformFee < 0 || formData.platformFee > 100) {
-      newErrors.platformFee = 'Platform fee must be between 0 and 100%';
+    const fee = parseFloat(formData.platform_fee);
+    if (isNaN(fee) || fee < 0 || fee > 100) {
+      newErrors.platform_fee = 'Platform fee must be between 0 and 100%';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    const centerData: SatelliteCenter = {
-      id: center?.id || `sc-${Date.now()}`,
-      name: formData.name.trim(),
-      address: formData.address.trim(),
-      officePhone: formData.officePhone.trim(),
-      platformFee: formData.platformFee,
-      createdAt: center?.createdAt || new Date(),
-      updatedAt: new Date(),
-    };
+    try {
+      if (center) {
+        const updateData: UpdateSatelliteCenterRequest = {
+          name: formData.name.trim(),
+          address: formData.address.trim(),
+          office_phone: formData.office_phone.trim(),
+          platform_fee: formData.platform_fee,
+          city: formData.city.trim() || undefined,
+          state: formData.state.trim() || undefined,
+          pincode: formData.pincode.trim() || undefined,
+        };
+        await updateCenterMutation.mutateAsync({ id: center.id, data: updateData });
+        toast({
+          title: 'Center updated',
+          description: `${formData.name} has been updated successfully.`,
+        });
+      } else {
+        const createData: CreateSatelliteCenterRequest = {
+          name: formData.name.trim(),
+          address: formData.address.trim(),
+          office_phone: formData.office_phone.trim(),
+          platform_fee: formData.platform_fee,
+          city: formData.city.trim() || undefined,
+          state: formData.state.trim() || undefined,
+          pincode: formData.pincode.trim() || undefined,
+        };
+        await createCenterMutation.mutateAsync(createData);
+        toast({
+          title: 'Center created',
+          description: `${formData.name} has been created successfully.`,
+        });
+      }
 
-    if (center) {
-      updateSatelliteCenter(center.id, centerData);
+      onSave();
+      onOpenChange(false);
+    } catch (error) {
       toast({
-        title: 'Center updated',
-        description: `${centerData.name} has been updated successfully.`,
-      });
-    } else {
-      addSatelliteCenter(centerData);
-      toast({
-        title: 'Center created',
-        description: `${centerData.name} has been created successfully.`,
+        title: 'Error',
+        description: center ? 'Failed to update satellite center.' : 'Failed to create satellite center.',
+        variant: 'destructive',
       });
     }
-
-    onSave();
-    onOpenChange(false);
   };
+
+  const isSubmitting = createCenterMutation.isPending || updateCenterMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -117,16 +149,17 @@ const SatelliteCenterFormDialog = ({ open, onOpenChange, center, onSave }: Satel
             {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="centerId">Center ID</Label>
-            <Input
-              id="centerId"
-              value={center?.id || 'Auto-generated'}
-              disabled
-              className="bg-muted"
-            />
-            <p className="text-xs text-muted-foreground">Center ID is automatically generated</p>
-          </div>
+          {center && (
+            <div className="space-y-2">
+              <Label htmlFor="centerId">Center ID</Label>
+              <Input
+                id="centerId"
+                value={center.id}
+                disabled
+                className="bg-muted font-mono text-sm"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="address">Address *</Label>
@@ -142,39 +175,78 @@ const SatelliteCenterFormDialog = ({ open, onOpenChange, center, onSave }: Satel
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="officePhone">Office Phone *</Label>
+              <Label htmlFor="city">City</Label>
               <Input
-                id="officePhone"
-                value={formData.officePhone}
-                onChange={(e) => setFormData(prev => ({ ...prev, officePhone: e.target.value }))}
-                placeholder="+91 XX XXXX XXXX"
+                id="city"
+                value={formData.city}
+                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                placeholder="Enter city"
               />
-              {errors.officePhone && <p className="text-sm text-destructive">{errors.officePhone}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="platformFee">Platform Fee (%) *</Label>
+              <Label htmlFor="state">State</Label>
               <Input
-                id="platformFee"
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                value={formData.platformFee}
-                onChange={(e) => setFormData(prev => ({ ...prev, platformFee: parseFloat(e.target.value) || 0 }))}
-                placeholder="2.5"
+                id="state"
+                value={formData.state}
+                onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+                placeholder="Enter state"
               />
-              {errors.platformFee && <p className="text-sm text-destructive">{errors.platformFee}</p>}
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="pincode">Pincode</Label>
+              <Input
+                id="pincode"
+                value={formData.pincode}
+                onChange={(e) => setFormData(prev => ({ ...prev, pincode: e.target.value }))}
+                placeholder="Enter pincode"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="office_phone">Office Phone *</Label>
+              <Input
+                id="office_phone"
+                value={formData.office_phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, office_phone: e.target.value }))}
+                placeholder="+91 XX XXXX XXXX"
+              />
+              {errors.office_phone && <p className="text-sm text-destructive">{errors.office_phone}</p>}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="platform_fee">Platform Fee (%) *</Label>
+            <Input
+              id="platform_fee"
+              type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              value={formData.platform_fee}
+              onChange={(e) => setFormData(prev => ({ ...prev, platform_fee: e.target.value }))}
+              placeholder="2.5"
+            />
+            {errors.platform_fee && <p className="text-sm text-destructive">{errors.platform_fee}</p>}
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>
-            {center ? 'Update' : 'Create'} Center
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {center ? 'Updating...' : 'Creating...'}
+              </>
+            ) : (
+              <>{center ? 'Update' : 'Create'} Center</>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

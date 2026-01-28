@@ -4,55 +4,58 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { mockSatelliteCenters, deleteSatelliteCenter } from '@/lib/mockData';
-import { SatelliteCenter } from '@/types/satellite';
-import { Plus, Pencil, Trash2, Search, Building2 } from 'lucide-react';
+import { useSatelliteCenters, useDeleteSatelliteCenter, useSearchSatelliteCenters } from '@/hooks/useSatelliteCenters';
+import { SatelliteCenterResponse } from '@/services/satellite-center.service';
+import { Plus, Pencil, Trash2, Search, Building2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import SatelliteCenterFormDialog from './SatelliteCenterFormDialog';
 
 const SatelliteCenterManagement = () => {
   const { toast } = useToast();
-  const [, forceUpdate] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedCenter, setSelectedCenter] = useState<SatelliteCenter | null>(null);
+  const [selectedCenter, setSelectedCenter] = useState<SatelliteCenterResponse | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [centerToDelete, setCenterToDelete] = useState<SatelliteCenter | null>(null);
+  const [centerToDelete, setCenterToDelete] = useState<SatelliteCenterResponse | null>(null);
 
-  const refreshCenters = () => {
-    forceUpdate(n => n + 1);
-  };
+  // Fetch centers from API (active only by default)
+  const { data: centersData, isLoading, refetch } = useSatelliteCenters(1, 100, undefined, undefined, true);
+  const { data: searchData, isLoading: isSearching } = useSearchSatelliteCenters(searchQuery);
+  const deleteCenterMutation = useDeleteSatelliteCenter();
 
-  const filteredCenters = mockSatelliteCenters.filter(center => {
-    const matchesSearch =
-      center.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      center.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      center.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      center.officePhone.includes(searchQuery);
+  const centers = centersData?.items || [];
+  const searchResults = searchData || [];
 
-    return matchesSearch;
-  });
+  // Use search results if there's a query, otherwise use all centers
+  const filteredCenters = searchQuery ? searchResults : centers;
 
-  const handleEdit = (center: SatelliteCenter) => {
+  const handleEdit = (center: SatelliteCenterResponse) => {
     setSelectedCenter(center);
     setIsFormOpen(true);
   };
 
-  const handleDelete = (center: SatelliteCenter) => {
+  const handleDelete = (center: SatelliteCenterResponse) => {
     setCenterToDelete(center);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (centerToDelete) {
-      deleteSatelliteCenter(centerToDelete.id);
-      toast({
-        title: 'Center deleted',
-        description: `${centerToDelete.name} has been removed from the platform.`,
-      });
-      refreshCenters();
-      setDeleteDialogOpen(false);
-      setCenterToDelete(null);
+      try {
+        await deleteCenterMutation.mutateAsync({ id: centerToDelete.id });
+        toast({
+          title: 'Center deleted',
+          description: `${centerToDelete.name} has been removed from the platform.`,
+        });
+        setDeleteDialogOpen(false);
+        setCenterToDelete(null);
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to delete satellite center.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -60,6 +63,16 @@ const SatelliteCenterManagement = () => {
     setSelectedCenter(null);
     setIsFormOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -114,12 +127,12 @@ const SatelliteCenterManagement = () => {
                 filteredCenters.map(center => (
                   <TableRow key={center.id}>
                     <TableCell className="font-medium">{center.name}</TableCell>
-                    <TableCell className="font-mono text-sm">{center.id}</TableCell>
+                    <TableCell className="font-mono text-sm">{center.id.slice(0, 8)}...</TableCell>
                     <TableCell className="max-w-[250px] truncate" title={center.address}>
                       {center.address}
                     </TableCell>
-                    <TableCell>{center.officePhone}</TableCell>
-                    <TableCell>{center.platformFee}%</TableCell>
+                    <TableCell>{center.office_phone}</TableCell>
+                    <TableCell>{center.platform_fee}%</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -149,7 +162,7 @@ const SatelliteCenterManagement = () => {
         </div>
 
         <div className="text-sm text-muted-foreground">
-          Showing {filteredCenters.length} of {mockSatelliteCenters.length} centers
+          Showing {filteredCenters.length} of {centersData?.total || 0} centers
         </div>
       </CardContent>
 
@@ -157,7 +170,7 @@ const SatelliteCenterManagement = () => {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         center={selectedCenter}
-        onSave={refreshCenters}
+        onSave={() => refetch()}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

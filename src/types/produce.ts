@@ -1,52 +1,82 @@
-export type ListingStatus = 'pending' | 'active' | 'expired' | 'rejected';
+export type ListingStatus = 'pending' | 'active' | 'expired' | 'cancelled' | 'sold_out';
+export type BidStatus = 'pending' | 'accepted' | 'rejected' | 'counter' | 'withdrawn';
+export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 
 export interface Produce {
   id: string;
   name: string;
-  mandiRate: number;
+  category: string;
+  mandi_rate: number;
+  unit: string;
+  is_active: boolean;
+}
+
+export interface ListingImage {
+  id: string;
+  image_url: string;
+  is_primary: boolean;
 }
 
 export interface Listing {
   id: string;
-  sellerId: string;
-  produceName: string;
-  mandiRate: number;
+  seller_id: string;
+  seller_name?: string;
+  produce_id: string;
+  produce_name: string;
+  mandi_rate: number;
+  item_rate: number;
   quantity: number;
-  minOrderQty: number;
-  images: string[];
-  video?: string;
+  available_quantity: number;
+  min_order_qty: number;
+  description?: string;
+  images: ListingImage[];
+  video_url?: string;
   status: ListingStatus;
-  createdAt: Date;
-  expiresAt: Date;
+  view_count: number;
+  created_at: string;
+  expires_at: string;
 }
 
 export interface Bid {
   id: string;
-  listingId: string;
-  buyerId: string;
-  buyerName: string;
+  listing_id: string;
+  buyer_id: string;
+  buyer_name: string;
   quantity: number;
-  pricePerUnit: number;
-  status: 'pending' | 'accepted' | 'rejected' | 'counter';
-  counterPrice?: number;
-  createdAt: Date;
+  price_per_unit: number;
+  total_amount: number;
+  status: BidStatus;
+  counter_price?: number;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
 }
-
-export type PaymentStatus = 'pending' | 'completed';
 
 export interface Transaction {
   id: string;
-  sellerId: string;
-  buyerId: string;
-  sellerName: string;
-  buyerName: string;
-  produceName: string;
+  transaction_number: string;
+  bid_id: string;
+  listing_id: string;
+  seller_id: string;
+  buyer_id: string;
+  seller_name: string;
+  buyer_name: string;
+  produce_name: string;
   quantity: number;
-  pricePerUnit: number;
-  totalAmount: number;           // Base amount (quantity * pricePerUnit)
-  buyerPaidAmount: number;       // Amount buyer pays (incl. GST + Platform Fee)
-  sellerPayoutAmount: number;    // Amount seller receives (minus GST + Platform Fee)
-  paymentStatus: PaymentStatus;  // Buyer payment status
-  sellerPaid: boolean;           // Whether admin has paid the seller
-  createdAt: Date;
+  price_per_unit: number;
+  base_amount: number;
+  buyer_gst_amount: number;
+  buyer_platform_fee: number;
+  buyer_total_amount: number;
+  seller_gst_amount: number;
+  seller_platform_fee: number;
+  seller_payout_amount: number;
+  payment_status: PaymentStatus;
+  payment_method?: string;
+  payment_reference?: string;
+  seller_paid: boolean;
+  seller_paid_at?: string;
+  seller_payout_reference?: string;
+  created_at: string;
+  updated_at: string;
 }

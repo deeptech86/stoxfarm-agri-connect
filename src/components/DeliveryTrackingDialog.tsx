@@ -5,12 +5,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { DeliveryTracking } from '@/types/logistics';
+import { DeliveryResponse } from '@/services/delivery.service';
 import LogisticsTrackingMap from './LogisticsTrackingMap';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DeliveryTrackingDialogProps {
-  delivery: DeliveryTracking | null;
+  delivery: DeliveryResponse | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -27,7 +27,7 @@ const DeliveryTrackingDialog: React.FC<DeliveryTrackingDialogProps> = ({
       <DialogContent className="max-w-2xl max-h-[90vh] p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-xl">
-            Track Delivery - {delivery.produceName}
+            Track Delivery - {delivery.produce_name}
           </DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[calc(90vh-80px)]">

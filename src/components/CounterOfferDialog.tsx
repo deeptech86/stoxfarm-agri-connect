@@ -2,10 +2,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Bid } from '@/types/produce';
-import { useNotifications } from '@/contexts/NotificationContext';
-import { updateBid, addTransaction, mockUsers } from '@/lib/mockData';
+import { useAcceptCounter, useWithdrawBid } from '@/hooks/useListings';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 interface CounterOfferDialogProps {
   bid: Bid;
@@ -16,74 +15,51 @@ interface CounterOfferDialogProps {
 }
 
 const CounterOfferDialog = ({ bid, produceName, sellerId, open, onOpenChange }: CounterOfferDialogProps) => {
-  const { user } = useAuth();
-  const { addNotification } = useNotifications();
   const { toast } = useToast();
+  const acceptCounterMutation = useAcceptCounter();
+  const withdrawBidMutation = useWithdrawBid();
 
-  const handleAcceptCounter = () => {
-    if (!user) return;
+  const isLoading = acceptCounterMutation.isPending || withdrawBidMutation.isPending;
 
-    updateBid(bid.id, { status: 'accepted', pricePerUnit: bid.counterPrice || bid.pricePerUnit });
-    
-    // Create transaction
-    const seller = mockUsers.find(u => u.id === sellerId);
-    const logistics = mockUsers.filter(u => u.role === 'logistics');
-    
-    const finalPrice = bid.counterPrice || bid.pricePerUnit;
-    addTransaction({
-      id: `txn-${Date.now()}`,
-      sellerId: sellerId,
-      buyerId: user.id,
-      sellerName: seller?.name || 'Unknown Seller',
-      buyerName: user.name,
-      produceName: produceName,
-      quantity: bid.quantity,
-      totalAmount: bid.quantity * finalPrice,
-      createdAt: new Date(),
-    });
+  const handleAcceptCounter = async () => {
+    try {
+      await acceptCounterMutation.mutateAsync(bid.id);
 
-    // Notify seller
-    addNotification(
-      sellerId,
-      `Your counter offer for ${produceName} has been accepted! Order confirmed for ${bid.quantity}kg at ₹${finalPrice}/kg`,
-      'success'
-    );
+      toast({
+        title: 'Counter Offer Accepted',
+        description: 'Transaction created and notifications sent.',
+      });
 
-    // Notify all logistics users
-    logistics.forEach(logistic => {
-      addNotification(
-        logistic.id,
-        `New delivery confirmed: ${produceName} - ${bid.quantity}kg from ${seller?.name} to ${user.name}`,
-        'info'
-      );
-    });
-
-    toast({
-      title: 'Counter Offer Accepted',
-      description: 'Transaction created and notifications sent.',
-    });
-
-    onOpenChange(false);
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to accept counter offer. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleRejectCounter = () => {
-    updateBid(bid.id, { status: 'rejected' });
-    
-    addNotification(
-      sellerId,
-      `Buyer rejected your counter offer for ${produceName}.`,
-      'warning'
-    );
+  const handleRejectCounter = async () => {
+    try {
+      await withdrawBidMutation.mutateAsync(bid.id);
 
-    toast({
-      title: 'Counter Offer Rejected',
-      description: 'Seller has been notified.',
-    });
+      toast({
+        title: 'Counter Offer Rejected',
+        description: 'Seller has been notified.',
+      });
 
-    onOpenChange(false);
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to reject counter offer. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const totalAmount = bid.quantity * (bid.counterPrice || bid.pricePerUnit);
+  const totalAmount = bid.quantity * (bid.counter_price || bid.price_per_unit);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -99,13 +75,13 @@ const CounterOfferDialog = ({ bid, produceName, sellerId, open, onOpenChange }: 
             <div>
               <Label className="text-muted-foreground">Your Bid</Label>
               <p className="text-lg font-semibold line-through text-muted-foreground">
-                ₹{bid.pricePerUnit}/kg
+                ₹{bid.price_per_unit}/kg
               </p>
             </div>
             <div>
               <Label className="text-muted-foreground">Counter Offer</Label>
               <p className="text-lg font-semibold text-primary">
-                ₹{bid.counterPrice}/kg
+                ₹{bid.counter_price}/kg
               </p>
             </div>
           </div>
@@ -122,17 +98,25 @@ const CounterOfferDialog = ({ bid, produceName, sellerId, open, onOpenChange }: 
         </div>
 
         <DialogFooter className="flex gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleRejectCounter}
             className="flex-1"
+            disabled={isLoading}
           >
+            {withdrawBidMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : null}
             Reject
           </Button>
-          <Button 
+          <Button
             onClick={handleAcceptCounter}
             className="flex-1"
+            disabled={isLoading}
           >
+            {acceptCounterMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : null}
             Accept Counter Offer
           </Button>
         </DialogFooter>
