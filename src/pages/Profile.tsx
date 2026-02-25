@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,12 +8,15 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera } from 'lucide-react';
+import { ArrowLeft, Camera, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useUpdateUser } from '@/hooks/useUsers';
 
 const Profile = () => {
-  const { user, updateProfile } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const updateUserMutation = useUpdateUser();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -26,18 +29,45 @@ const Profile = () => {
     return <Navigate to="/login" replace />;
   }
 
-  const handleSave = () => {
-    updateProfile(formData);
-    setEditing(false);
-    toast({
-      title: 'Profile Updated',
-      description: 'Your profile has been updated successfully.',
-    });
+  const handleSave = async () => {
+    try {
+      await updateUserMutation.mutateAsync({
+        id: user.id,
+        data: {
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          address: formData.address.trim(),
+          notes: formData.notes.trim() || undefined,
+        },
+      });
+      await refreshUser();
+      setEditing(false);
+      toast({
+        title: 'Profile Updated',
+        description: 'Your profile has been updated successfully.',
+      });
+    } catch (error: unknown) {
+      console.error('Profile update error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile. Please try again.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
     <Layout>
       <div className="max-w-2xl mx-auto">
+        <Button
+          variant="ghost"
+          className="mb-4"
+          onClick={() => navigate('/dashboard')}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Button>
         <Card>
           <CardHeader>
             <CardTitle>My Profile</CardTitle>
@@ -142,10 +172,26 @@ const Profile = () => {
                 </Button>
               ) : (
                 <>
-                  <Button onClick={handleSave} className="flex-1">
-                    Save Changes
+                  <Button
+                    onClick={handleSave}
+                    className="flex-1"
+                    disabled={updateUserMutation.isPending}
+                  >
+                    {updateUserMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
                   </Button>
-                  <Button onClick={() => setEditing(false)} variant="outline" className="flex-1">
+                  <Button
+                    onClick={() => setEditing(false)}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={updateUserMutation.isPending}
+                  >
                     Cancel
                   </Button>
                 </>

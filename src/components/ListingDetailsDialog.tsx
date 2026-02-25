@@ -132,10 +132,6 @@ const ListingDetailsDialog = ({ listing, open, onOpenChange }: ListingDetailsDia
               </div>
             </>
           )}
-
-          <div className="text-xs text-muted-foreground">
-            Views: {listing.view_count}
-          </div>
         </div>
       </DialogContent>
     </Dialog>

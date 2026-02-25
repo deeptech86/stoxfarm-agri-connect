@@ -85,14 +85,15 @@ const CreateListingDialog = ({ open, onOpenChange }: CreateListingDialogProps) =
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Create New Listing</DialogTitle>
           <DialogDescription>
             List your produce for sale. Listing will expire automatically after 7 days.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="space-y-4 overflow-y-auto flex-1 pr-2">
           <div className="space-y-2">
             <Label htmlFor="produce">Produce Type</Label>
             <Select value={selectedProduceId} onValueChange={setSelectedProduceId} required>
@@ -221,8 +222,9 @@ const CreateListingDialog = ({ open, onOpenChange }: CreateListingDialogProps) =
               )}
             </div>
           </div>
+          </div>
 
-          <DialogFooter>
+          <DialogFooter className="pt-4 border-t mt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

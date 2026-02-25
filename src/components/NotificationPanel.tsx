@@ -25,15 +25,15 @@ const NotificationPanel = () => {
   };
 
   return (
-    <div className="w-80 max-w-[320px] overflow-hidden">
-      <div className="p-3 border-b flex items-center justify-between">
-        <div>
+    <div className="w-full overflow-hidden">
+      <div className="p-3 border-b flex items-center justify-between gap-2">
+        <div className="min-w-0 flex-shrink-0">
           <h3 className="font-semibold text-sm">Notifications</h3>
           {unreadCount > 0 && (
             <p className="text-xs text-muted-foreground">{unreadCount} unread</p>
           )}
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1 flex-shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -47,7 +47,7 @@ const NotificationPanel = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs h-7 px-2"
+              className="text-xs h-7 px-2 whitespace-nowrap"
               onClick={markAllAsRead}
             >
               Mark all read
@@ -69,28 +69,28 @@ const NotificationPanel = () => {
             {notifications.map(notification => (
               <div
                 key={notification.id}
-                className={`p-3 hover:bg-accent/80 transition-colors ${
+                className={`p-3 hover:bg-accent/80 transition-colors overflow-hidden ${
                   !notification.read ? 'bg-accent/50' : ''
                 }`}
               >
-                <div className="flex gap-2">
+                <div className="flex gap-2 overflow-hidden">
                   <div className="mt-0.5 flex-shrink-0">{getIcon(notification.type)}</div>
                   <div className="flex-1 min-w-0 overflow-hidden">
                     {notification.title && (
-                      <p className="text-sm font-medium truncate">{notification.title}</p>
+                      <p className="text-sm font-medium truncate overflow-hidden">{notification.title}</p>
                     )}
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 break-words">
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 break-all overflow-hidden">
                       {notification.message}
                     </p>
-                    <div className="flex items-center justify-between mt-1.5">
-                      <p className="text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between mt-1.5 gap-2">
+                      <p className="text-xs text-muted-foreground truncate flex-shrink min-w-0">
                         {formatDistanceToNow(notification.createdAt, { addSuffix: true })}
                       </p>
                       {!notification.read && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-5 text-xs px-2"
+                          className="h-5 text-xs px-2 flex-shrink-0 whitespace-nowrap"
                           onClick={() => markAsRead(notification.id)}
                         >
                           Mark read

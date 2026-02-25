@@ -3,8 +3,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { Plus, Info, Loader2 } from 'lucide-react';
 import { useSellerListings, useSellerBids } from '@/hooks/useListings';
+import { useUserTransactions } from '@/hooks/useTransactions';
 import ListingCard from '@/components/ListingCard';
 import CreateListingDialog from '@/components/CreateListingDialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -17,6 +20,7 @@ const SellerDashboard = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedBid, setSelectedBid] = useState<Bid | null>(null);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('pending');
 
   // Fetch seller's listings
   const { data: listingsData, isLoading: listingsLoading } = useSellerListings();
@@ -24,8 +28,17 @@ const SellerDashboard = () => {
   // Fetch seller's bids (pending bids on their listings)
   const { data: bidsData, isLoading: bidsLoading } = useSellerBids(1, 50, 'pending');
 
+  // Fetch seller's transactions with filter
+  const { data: transactionsData, isLoading: transactionsLoading } = useUserTransactions(
+    'seller',
+    1,
+    50,
+    paymentStatusFilter === 'all' ? undefined : paymentStatusFilter
+  );
+
   const myListings = listingsData?.items || [];
   const pendingBids = bidsData?.items || [];
+  const sellerTransactions = transactionsData?.items || [];
 
   const activeCount = myListings.filter(l => l.status === 'active').length;
   const expiredCount = myListings.filter(l => l.status === 'expired').length;
@@ -77,6 +90,108 @@ const SellerDashboard = () => {
           </CardHeader>
         </Card>
       </div>
+
+      {/* Seller Payments Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>My Payments</CardTitle>
+              <CardDescription>Track payments for your sold produce</CardDescription>
+            </div>
+            <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Filter status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {transactionsLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : sellerTransactions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No {paymentStatusFilter === 'all' ? '' : paymentStatusFilter} payments found
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Buyer</TableHead>
+                  <TableHead>Produce</TableHead>
+                  <TableHead>Quantity</TableHead>
+                  <TableHead>Rate</TableHead>
+                  <TableHead>Your Payout</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sellerTransactions.map(transaction => (
+                  <TableRow key={transaction.id}>
+                    <TableCell className="font-medium">{transaction.buyer_name}</TableCell>
+                    <TableCell>{transaction.produce_name}</TableCell>
+                    <TableCell>{transaction.quantity} kg</TableCell>
+                    <TableCell>₹{transaction.price_per_unit}/kg</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold text-green-600">
+                          ₹{(transaction.seller_payout_amount || 0).toFixed(2)}
+                        </span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[280px] p-3">
+                              <div className="space-y-2 text-sm">
+                                <p className="font-semibold border-b pb-1">Payout Breakdown</p>
+                                <div className="flex justify-between">
+                                  <span>Base Amount:</span>
+                                  <span>₹{(transaction.base_amount || 0).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-red-600">
+                                  <span>GST Deduction:</span>
+                                  <span>-₹{(transaction.seller_gst_amount || 0).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-red-600">
+                                  <span>Platform Fee:</span>
+                                  <span>-₹{(transaction.seller_platform_fee || 0).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between font-semibold border-t pt-1 text-green-600">
+                                  <span>Your Payout:</span>
+                                  <span>₹{(transaction.seller_payout_amount || 0).toFixed(2)}</span>
+                                </div>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {transaction.seller_paid ? (
+                        <Badge variant="outline" className="text-green-600 border-green-600">
+                          Paid
+                        </Badge>
+                      ) : transaction.payment_status === 'completed' ? (
+                        <Badge variant="secondary">Awaiting Payout</Badge>
+                      ) : (
+                        <Badge variant="outline">Pending Buyer Payment</Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
       {pendingBids.length > 0 && (
         <Card>

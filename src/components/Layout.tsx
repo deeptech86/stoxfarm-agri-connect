@@ -53,7 +53,7 @@ const Layout = ({ children }: LayoutProps) => {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="p-0">
+              <PopoverContent align="end" className="p-0 w-96">
                 <NotificationPanel />
               </PopoverContent>
             </Popover>
