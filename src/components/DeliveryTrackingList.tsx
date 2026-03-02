@@ -29,6 +29,16 @@ const DeliveryTrackingList: React.FC<DeliveryTrackingListProps> = ({
 
   // For logistics/admin, get all active deliveries
   const { data: deliveriesData, isLoading } = useActiveDeliveries(1, 50);
+
+  // Extract city from address string (typically the second-to-last part before state/PIN)
+  const extractCity = (address: string): string => {
+    const parts = address.split(',').map(p => p.trim());
+    if (parts.length >= 2) {
+      // Usually city is the second-to-last part (before state/PIN)
+      return parts[parts.length - 2] || parts[parts.length - 1];
+    }
+    return address;
+  };
   const deliveries = deliveriesData?.items || [];
 
   const getStatusColor = (status: string) => {
@@ -135,9 +145,15 @@ const DeliveryTrackingList: React.FC<DeliveryTrackingListProps> = ({
                       <div className="flex items-start gap-2 text-sm text-muted-foreground">
                         <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
                         <div className="min-w-0">
-                          <span className="text-foreground">{delivery.origin_address}</span>
+                          {/* For buyers: show only seller city (origin), for sellers: show full origin */}
+                          <span className="text-foreground">
+                            {filterByRole === 'buyer' ? extractCity(delivery.origin_address) : delivery.origin_address}
+                          </span>
                           <span className="mx-2">→</span>
-                          <span className="text-foreground">{delivery.dest_address}</span>
+                          {/* For sellers: show only buyer city (dest), for buyers: show full dest */}
+                          <span className="text-foreground">
+                            {filterByRole === 'seller' ? extractCity(delivery.dest_address) : delivery.dest_address}
+                          </span>
                         </div>
                       </div>
                     </div>

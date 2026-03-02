@@ -28,17 +28,26 @@ const SellerDashboard = () => {
   // Fetch seller's bids (pending bids on their listings)
   const { data: bidsData, isLoading: bidsLoading } = useSellerBids(1, 50, 'pending');
 
-  // Fetch seller's transactions with filter
+  // Fetch all seller's transactions (filter client-side for complex status logic)
   const { data: transactionsData, isLoading: transactionsLoading } = useUserTransactions(
     'seller',
     1,
     50,
-    paymentStatusFilter === 'all' ? undefined : paymentStatusFilter
+    undefined
   );
 
   const myListings = listingsData?.items || [];
   const pendingBids = bidsData?.items || [];
-  const sellerTransactions = transactionsData?.items || [];
+
+  // Apply client-side filtering based on payment status
+  const allTransactions = transactionsData?.items || [];
+  const sellerTransactions = allTransactions.filter(transaction => {
+    if (paymentStatusFilter === 'all') return true;
+    if (paymentStatusFilter === 'pending') return transaction.payment_status === 'pending';
+    if (paymentStatusFilter === 'awaiting_payout') return transaction.payment_status === 'completed' && !transaction.seller_paid;
+    if (paymentStatusFilter === 'paid') return transaction.seller_paid === true;
+    return true;
+  });
 
   const activeCount = myListings.filter(l => l.status === 'active').length;
   const expiredCount = myListings.filter(l => l.status === 'expired').length;
@@ -100,12 +109,13 @@ const SellerDashboard = () => {
               <CardDescription>Track payments for your sold produce</CardDescription>
             </div>
             <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="pending">Pending Buyer Payment</SelectItem>
+                <SelectItem value="awaiting_payout">Awaiting Payout</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
                 <SelectItem value="all">All</SelectItem>
               </SelectContent>
             </Select>
@@ -118,13 +128,12 @@ const SellerDashboard = () => {
             </div>
           ) : sellerTransactions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No {paymentStatusFilter === 'all' ? '' : paymentStatusFilter} payments found
+              No {paymentStatusFilter === 'all' ? '' : paymentStatusFilter === 'pending' ? 'pending buyer payment' : paymentStatusFilter === 'awaiting_payout' ? 'awaiting payout' : paymentStatusFilter === 'paid' ? 'paid' : ''} payments found
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Buyer</TableHead>
                   <TableHead>Produce</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>Rate</TableHead>
@@ -135,8 +144,7 @@ const SellerDashboard = () => {
               <TableBody>
                 {sellerTransactions.map(transaction => (
                   <TableRow key={transaction.id}>
-                    <TableCell className="font-medium">{transaction.buyer_name}</TableCell>
-                    <TableCell>{transaction.produce_name}</TableCell>
+                    <TableCell className="font-medium">{transaction.produce_name}</TableCell>
                     <TableCell>{transaction.quantity} kg</TableCell>
                     <TableCell>₹{transaction.price_per_unit}/kg</TableCell>
                     <TableCell>
@@ -158,7 +166,7 @@ const SellerDashboard = () => {
                                 </div>
                                 <div className="flex justify-between text-red-600">
                                   <span>GST Deduction:</span>
-                                  <span>-₹{(transaction.seller_gst_amount || 0).toFixed(2)}</span>
+                                  <span>-₹{(transaction.seller_gst_deduction || 0).toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-red-600">
                                   <span>Platform Fee:</span>
@@ -208,7 +216,6 @@ const SellerDashboard = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Buyer</TableHead>
                     <TableHead>Produce</TableHead>
                     <TableHead>Quantity</TableHead>
                     <TableHead>Price/kg</TableHead>
@@ -221,7 +228,6 @@ const SellerDashboard = () => {
                     const listing = myListings.find(l => l.id === bid.listing_id);
                     return (
                       <TableRow key={bid.id}>
-                        <TableCell>{bid.buyer_name}</TableCell>
                         <TableCell>{listing?.produce_name || '-'}</TableCell>
                         <TableCell>{bid.quantity} kg</TableCell>
                         <TableCell>₹{bid.price_per_unit}</TableCell>

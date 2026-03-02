@@ -114,7 +114,6 @@ const BuyerDashboard = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Seller</TableHead>
                     <TableHead>Produce</TableHead>
                     <TableHead>Quantity</TableHead>
                     <TableHead>Rate</TableHead>
@@ -125,8 +124,7 @@ const BuyerDashboard = () => {
                 <TableBody>
                   {pendingPaymentTransactions.map(transaction => (
                     <TableRow key={transaction.id}>
-                      <TableCell className="font-medium">{transaction.seller_name}</TableCell>
-                      <TableCell>{transaction.produce_name}</TableCell>
+                      <TableCell className="font-medium">{transaction.produce_name}</TableCell>
                       <TableCell>{transaction.quantity} kg</TableCell>
                       <TableCell>₹{transaction.price_per_unit}/kg</TableCell>
                       <TableCell>

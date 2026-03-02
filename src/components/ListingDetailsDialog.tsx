@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Listing } from '@/types/produce';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Package, User as UserIcon } from 'lucide-react';
+import { Calendar, Package } from 'lucide-react';
 
 interface ListingDetailsDialogProps {
   listing: Listing;
@@ -115,23 +115,6 @@ const ListingDetailsDialog = ({ listing, open, onOpenChange }: ListingDetailsDia
             </div>
           </div>
 
-          {listing.seller_name && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                <h4 className="font-semibold flex items-center gap-2">
-                  <UserIcon className="h-4 w-4" />
-                  Seller Information
-                </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">Name:</span>
-                    <span className="font-semibold">{listing.seller_name}</span>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
         </div>
       </DialogContent>
     </Dialog>
