@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Info, Loader2 } from 'lucide-react';
+import { Plus, Info, Loader2, FileText, Download } from 'lucide-react';
 import { useSellerListings, useSellerBids } from '@/hooks/useListings';
 import { useUserTransactions } from '@/hooks/useTransactions';
 import ListingCard from '@/components/ListingCard';
@@ -14,13 +14,37 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import BidManagementDialog from '@/components/BidManagementDialog';
 import { Bid, Listing } from '@/types/produce';
 import DeliveryTrackingList from '@/components/DeliveryTrackingList';
+import { TransactionResponse } from '@/services/transaction.service';
+import { generateSellerReceipt, downloadReceipt } from '@/services/receipt.service';
+import { useToast } from '@/hooks/use-toast';
 
 const SellerDashboard = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedBid, setSelectedBid] = useState<Bid | null>(null);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('pending');
+
+  const handleDownloadSellerReceipt = (transaction: TransactionResponse) => {
+    const receiptData = {
+      transaction,
+      buyerDetails: {
+        name: transaction.buyer_name,
+      },
+      sellerDetails: {
+        name: transaction.seller_name,
+      },
+    };
+
+    const doc = generateSellerReceipt(receiptData);
+    downloadReceipt(doc, `StoxxFarm_Receipt_Seller_${transaction.transaction_number}.pdf`);
+
+    toast({
+      title: 'Receipt Downloaded',
+      description: 'Your seller receipt has been downloaded.',
+    });
+  };
 
   // Fetch seller's listings
   const { data: listingsData, isLoading: listingsLoading } = useSellerListings();
@@ -139,6 +163,7 @@ const SellerDashboard = () => {
                   <TableHead>Rate</TableHead>
                   <TableHead>Your Payout</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Receipt</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -191,6 +216,21 @@ const SellerDashboard = () => {
                         <Badge variant="secondary">Awaiting Payout</Badge>
                       ) : (
                         <Badge variant="outline">Pending Buyer Payment</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {(transaction.payment_status === 'completed' || transaction.seller_paid) ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownloadSellerReceipt(transaction)}
+                          className="flex items-center gap-1 text-primary hover:text-primary/80"
+                        >
+                          <FileText className="h-4 w-4" />
+                          <Download className="h-3 w-3" />
+                        </Button>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
                       )}
                     </TableCell>
                   </TableRow>

@@ -22,6 +22,8 @@ const Profile = () => {
     name: user?.name || '',
     phone: user?.phone || '',
     address: user?.address || '',
+    city: (user as unknown as { city?: string })?.city || '',
+    pincode: (user as unknown as { pincode?: string })?.pincode || '',
     notes: user?.notes || '',
   });
 
@@ -37,6 +39,8 @@ const Profile = () => {
           name: formData.name.trim(),
           phone: formData.phone.trim(),
           address: formData.address.trim(),
+          city: formData.city.trim() || undefined,
+          pincode: formData.pincode.trim() || undefined,
           notes: formData.notes.trim() || undefined,
         },
       });
@@ -126,6 +130,30 @@ const Profile = () => {
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   disabled={!editing}
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    disabled={!editing}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="pincode">Pincode</Label>
+                  <Input
+                    id="pincode"
+                    value={formData.pincode}
+                    onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                    placeholder="6-digit pincode"
+                    maxLength={6}
+                    disabled={!editing}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

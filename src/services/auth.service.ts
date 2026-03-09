@@ -16,6 +16,9 @@ export interface RegisterRequest {
   phone: string;
   role: 'seller' | 'buyer' | 'logistics';
   address: string;
+  city?: string;
+  pincode?: string;
+  preferred_produce?: string[]; // For sellers: produce they want to sell, for buyers: frequent buys
 }
 
 export interface UserResponse {

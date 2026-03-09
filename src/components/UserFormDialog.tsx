@@ -9,8 +9,16 @@ import { UserRole } from '@/types/user';
 import { useCreateUser, useUpdateUser } from '@/hooks/useUsers';
 import { UserResponse, CreateUserRequest, UpdateUserRequest } from '@/services/user.service';
 import { useSatelliteCenters } from '@/hooks/useSatelliteCenters';
+import { useProduce } from '@/hooks/useProduce';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import CreatableSelect from 'react-select/creatable';
+import { MultiValue } from 'react-select';
+
+interface ProduceOption {
+  value: string;
+  label: string;
+}
 
 interface UserFormDialogProps {
   open: boolean;
@@ -25,6 +33,11 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
   const updateUserMutation = useUpdateUser();
   const { data: satelliteCentersData } = useSatelliteCenters(1, 100, undefined, undefined, true);
   const satelliteCenters = satelliteCentersData?.items || [];
+  const { data: produceData } = useProduce(1, 100, undefined, true);
+  const produceOptions: ProduceOption[] = (produceData?.items || []).map(p => ({
+    value: p.name,
+    label: p.name,
+  }));
 
   const [formData, setFormData] = useState({
     name: '',
@@ -33,10 +46,13 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
     phone: '',
     role: 'buyer' as UserRole,
     address: '',
+    city: '',
+    pincode: '',
     notes: '',
     satelliteCenterId: '',
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedProduce, setSelectedProduce] = useState<ProduceOption[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>();
 
   useEffect(() => {
     if (user) {
@@ -47,9 +63,18 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
         phone: user.phone,
         role: user.role,
         address: user.address,
+        city: (user as unknown as { city?: string }).city || '',
+        pincode: (user as unknown as { pincode?: string }).pincode || '',
         notes: user.notes || '',
         satelliteCenterId: user.satellite_center_id || '',
       });
+      // Load existing preferred_produce if available
+      const userProduce = (user as unknown as { preferred_produce?: string[] }).preferred_produce;
+      if (userProduce && Array.isArray(userProduce)) {
+        setSelectedProduce(userProduce.map(p => ({ value: p, label: p })));
+      } else {
+        setSelectedProduce([]);
+      }
     } else {
       setFormData({
         name: '',
@@ -58,9 +83,12 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
         phone: '',
         role: 'buyer',
         address: '',
+        city: '',
+        pincode: '',
         notes: '',
         satelliteCenterId: '',
       });
+      setSelectedProduce([]);
     }
     setErrors({});
   }, [user, open]);
@@ -95,18 +123,22 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
     if (!validateForm()) return;
 
     try {
-      if (user) {
-        // Only include satellite_center_id if it's a valid UUID (36 chars with dashes)
-        const satelliteId = formData.satelliteCenterId.trim();
-        const isValidUUID = satelliteId.length === 36 && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(satelliteId);
+      // Only include satellite_center_id if it's a valid UUID (36 chars with dashes)
+      const satelliteId = formData.satelliteCenterId.trim();
+      const isValidUUID = satelliteId.length === 36 && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(satelliteId);
+      const produceValues = selectedProduce.map(p => p.value);
 
+      if (user) {
         const updateData: UpdateUserRequest = {
           name: formData.name.trim(),
           phone: formData.phone.trim(),
           address: formData.address.trim(),
+          city: formData.city.trim() || undefined,
+          pincode: formData.pincode.trim() || undefined,
           notes: formData.notes.trim() || undefined,
           satellite_center_id: isValidUUID ? satelliteId : undefined,
           password: formData.password.trim() || undefined,
+          preferred_produce: produceValues.length > 0 ? produceValues : undefined,
         };
         await updateUserMutation.mutateAsync({ id: user.id, data: updateData });
         toast({
@@ -114,10 +146,6 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
           description: `${formData.name} has been updated successfully.`,
         });
       } else {
-        // Only include satellite_center_id if it's a valid UUID (36 chars with dashes)
-        const satelliteId = formData.satelliteCenterId.trim();
-        const isValidUUID = satelliteId.length === 36 && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(satelliteId);
-
         const createData: CreateUserRequest = {
           email: formData.email.trim(),
           password: formData.password.trim(),
@@ -125,8 +153,11 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
           phone: formData.phone.trim(),
           role: formData.role,
           address: formData.address.trim(),
+          city: formData.city.trim() || undefined,
+          pincode: formData.pincode.trim() || undefined,
           notes: formData.notes.trim() || undefined,
           satellite_center_id: isValidUUID ? satelliteId : undefined,
+          preferred_produce: produceValues.length > 0 ? produceValues : undefined,
         };
         await createUserMutation.mutateAsync(createData);
         toast({
@@ -249,6 +280,109 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
             />
             {errors.address && <p className="text-sm text-destructive">{errors.address}</p>}
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                placeholder="Enter city"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pincode">Pincode</Label>
+              <Input
+                id="pincode"
+                value={formData.pincode}
+                onChange={(e) => setFormData(prev => ({ ...prev, pincode: e.target.value }))}
+                placeholder="Enter 6-digit pincode"
+                maxLength={6}
+              />
+            </div>
+          </div>
+
+          {(formData.role === 'seller' || formData.role === 'buyer') && (
+            <div className="space-y-2">
+              <Label>
+                {formData.role === 'seller' ? 'Preferred Produce to Sell (up to 5)' : 'Most Frequent Buys (up to 5)'}
+              </Label>
+              <CreatableSelect
+                isMulti
+                options={produceOptions}
+                value={selectedProduce}
+                onChange={(newValue: MultiValue<ProduceOption>) => {
+                  if (newValue.length <= 5) {
+                    setSelectedProduce(newValue as ProduceOption[]);
+                  } else {
+                    toast({
+                      title: 'Maximum 5 items',
+                      description: 'You can select up to 5 produce items.',
+                      variant: 'destructive',
+                    });
+                  }
+                }}
+                placeholder={formData.role === 'seller' ? 'Select or add produce to sell...' : 'Select or add produce they buy...'}
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    minHeight: '40px',
+                    borderColor: 'hsl(var(--border))',
+                    backgroundColor: 'hsl(var(--background))',
+                    '&:hover': {
+                      borderColor: 'hsl(var(--ring))',
+                    },
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    backgroundColor: 'hsl(var(--popover))',
+                    border: '1px solid hsl(var(--border))',
+                    zIndex: 50,
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isSelected
+                      ? 'hsl(var(--primary))'
+                      : state.isFocused
+                      ? 'hsl(var(--accent))'
+                      : 'transparent',
+                    color: state.isSelected ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
+                  }),
+                  multiValue: (base) => ({
+                    ...base,
+                    backgroundColor: 'hsl(var(--secondary))',
+                  }),
+                  multiValueLabel: (base) => ({
+                    ...base,
+                    color: 'hsl(var(--secondary-foreground))',
+                  }),
+                  multiValueRemove: (base) => ({
+                    ...base,
+                    color: 'hsl(var(--secondary-foreground))',
+                    '&:hover': {
+                      backgroundColor: 'hsl(var(--destructive))',
+                      color: 'white',
+                    },
+                  }),
+                  input: (base) => ({
+                    ...base,
+                    color: 'hsl(var(--foreground))',
+                  }),
+                  placeholder: (base) => ({
+                    ...base,
+                    color: 'hsl(var(--muted-foreground))',
+                  }),
+                }}
+                formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                noOptionsMessage={() => 'Type to add new produce'}
+              />
+              <p className="text-xs text-muted-foreground">
+                Select from existing options or type to add new produce items
+              </p>
+            </div>
+          )}
 
           {showSatelliteFields && (
             <div className="space-y-2">

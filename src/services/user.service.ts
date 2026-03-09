@@ -29,6 +29,9 @@ export interface CreateUserRequest {
   address: string;
   notes?: string;
   satellite_center_id?: string;
+  city?: string;
+  pincode?: string;
+  preferred_produce?: string[];
 }
 
 export interface UpdateUserRequest {
@@ -40,6 +43,9 @@ export interface UpdateUserRequest {
   notes?: string;
   satellite_center_id?: string;
   is_active?: boolean;
+  city?: string;
+  pincode?: string;
+  preferred_produce?: string[];
 }
 
 export interface PaginatedUserResponse {

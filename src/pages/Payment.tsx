@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useUpdatePaymentStatus } from '@/hooks/useTransactions';
-import { CreditCard, Lock, ArrowLeft, CheckCircle, Building2, Loader2 } from 'lucide-react';
+import { CreditCard, Lock, ArrowLeft, CheckCircle, Building2, Loader2, Download, FileText } from 'lucide-react';
+import { transactionService, TransactionResponse } from '@/services/transaction.service';
+import { generateBuyerReceipt, generateSellerReceipt, downloadReceipt } from '@/services/receipt.service';
 
 interface PaymentState {
   transactionId: string;
@@ -27,6 +29,7 @@ const Payment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [completedTransaction, setCompletedTransaction] = useState<TransactionResponse | null>(null);
   const updatePaymentStatus = useUpdatePaymentStatus();
 
   const paymentData = location.state as PaymentState | null;
@@ -117,6 +120,14 @@ const Payment = () => {
         paymentReference: `PAY-${Date.now()}`,
       });
 
+      // Fetch the complete transaction details for receipt generation
+      try {
+        const transaction = await transactionService.getTransaction(paymentData.transactionId);
+        setCompletedTransaction(transaction);
+      } catch {
+        console.error('Failed to fetch transaction details for receipt');
+      }
+
       setPaymentSuccess(true);
 
       toast({
@@ -130,6 +141,50 @@ const Payment = () => {
         variant: 'destructive',
       });
     }
+  };
+
+  const handleDownloadBuyerReceipt = () => {
+    if (!completedTransaction) return;
+
+    const receiptData = {
+      transaction: completedTransaction,
+      buyerDetails: {
+        name: completedTransaction.buyer_name,
+      },
+      sellerDetails: {
+        name: completedTransaction.seller_name,
+      },
+    };
+
+    const doc = generateBuyerReceipt(receiptData);
+    downloadReceipt(doc, `StoxxFarm_Receipt_Buyer_${completedTransaction.transaction_number}.pdf`);
+
+    toast({
+      title: 'Receipt Downloaded',
+      description: 'Your buyer receipt has been downloaded.',
+    });
+  };
+
+  const handleDownloadSellerReceipt = () => {
+    if (!completedTransaction) return;
+
+    const receiptData = {
+      transaction: completedTransaction,
+      buyerDetails: {
+        name: completedTransaction.buyer_name,
+      },
+      sellerDetails: {
+        name: completedTransaction.seller_name,
+      },
+    };
+
+    const doc = generateSellerReceipt(receiptData);
+    downloadReceipt(doc, `StoxxFarm_Receipt_Seller_${completedTransaction.transaction_number}.pdf`);
+
+    toast({
+      title: 'Receipt Downloaded',
+      description: 'Seller receipt has been downloaded.',
+    });
   };
 
   if (paymentSuccess) {
@@ -149,8 +204,39 @@ const Payment = () => {
                 <p className="text-sm"><strong>Order:</strong> {paymentData.produceName}</p>
                 <p className="text-sm"><strong>Quantity:</strong> {paymentData.quantity} kg</p>
                 <p className="text-sm"><strong>Seller:</strong> {paymentData.sellerName}</p>
-                <p className="text-sm"><strong>Transaction ID:</strong> TXN{Date.now()}</p>
+                <p className="text-sm"><strong>Transaction ID:</strong> {completedTransaction?.transaction_number || `TXN${Date.now()}`}</p>
               </div>
+
+              {/* Receipt Download Section */}
+              {completedTransaction && (
+                <div className="mb-6">
+                  <Separator className="mb-4" />
+                  <p className="text-sm text-muted-foreground mb-3">Download Payment Receipts</p>
+                  <div className="flex gap-3 justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownloadBuyerReceipt}
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Buyer Receipt
+                      <Download className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownloadSellerReceipt}
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Seller Receipt
+                      <Download className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <Button onClick={() => navigate('/dashboard')} className="w-full">
                 Back to Dashboard
               </Button>

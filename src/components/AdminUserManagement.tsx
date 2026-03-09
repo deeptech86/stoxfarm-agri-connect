@@ -6,10 +6,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useUsers, useDeleteUser, useSearchUsers } from '@/hooks/useUsers';
+import { useUsers, useDeleteUser, useSearchUsers, useActivateUser, useDeactivateUser } from '@/hooks/useUsers';
 import { UserResponse } from '@/services/user.service';
 import { UserRole } from '@/types/user';
-import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import UserFormDialog from './UserFormDialog';
 
@@ -22,10 +22,12 @@ const AdminUserManagement = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserResponse | null>(null);
 
-  // Fetch users from API (active users only by default)
-  const { data: usersData, isLoading, refetch } = useUsers(1, 100, roleFilter === 'all' ? undefined : roleFilter, false);
+  // Fetch users from API (include inactive users to show pending registrations)
+  const { data: usersData, isLoading, refetch } = useUsers(1, 100, roleFilter === 'all' ? undefined : roleFilter, true);
   const { data: searchData, isLoading: isSearching } = useSearchUsers(searchQuery, roleFilter === 'all' ? undefined : roleFilter);
   const deleteUserMutation = useDeleteUser();
+  const activateUserMutation = useActivateUser();
+  const deactivateUserMutation = useDeactivateUser();
 
   const users = usersData?.items || [];
   const searchResults = searchData?.items || [];
@@ -79,6 +81,31 @@ const AdminUserManagement = () => {
   const handleCreateNew = () => {
     setSelectedUser(null);
     setIsFormOpen(true);
+  };
+
+  const handleToggleActive = async (user: UserResponse) => {
+    try {
+      if (user.is_active) {
+        await deactivateUserMutation.mutateAsync(user.id);
+        toast({
+          title: 'User deactivated',
+          description: `${user.name} has been deactivated.`,
+        });
+      } else {
+        await activateUserMutation.mutateAsync(user.id);
+        toast({
+          title: 'User activated',
+          description: `${user.name} has been activated and can now use the platform.`,
+        });
+      }
+      refetch();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to ${user.is_active ? 'deactivate' : 'activate'} user.`,
+        variant: 'destructive',
+      });
+    }
   };
 
   if (isLoading) {
@@ -138,20 +165,21 @@ const AdminUserManagement = () => {
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>Address</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Satellite Center</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     No users found
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredUsers.map(user => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user.id} className={!user.is_active ? 'bg-yellow-50' : ''}>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>{user.email || '-'}</TableCell>
                     <TableCell>{user.phone}</TableCell>
@@ -160,11 +188,32 @@ const AdminUserManagement = () => {
                         {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                       </Badge>
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate" title={user.address}>
-                      {user.address}
+                    <TableCell>
+                      {user.is_active ? (
+                        <Badge variant="outline" className="text-green-600 border-green-600">
+                          Active
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                          Pending
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="max-w-[150px] truncate" title={user.satellite_center_name}>
+                      {user.satellite_center_name || '-'}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleToggleActive(user)}
+                          title={user.is_active ? 'Deactivate user' : 'Activate user'}
+                          className={user.is_active ? 'text-yellow-600 hover:text-yellow-700' : 'text-green-600 hover:text-green-700'}
+                          disabled={activateUserMutation.isPending || deactivateUserMutation.isPending}
+                        >
+                          {user.is_active ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"

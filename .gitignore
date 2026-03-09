@@ -25,3 +25,4 @@ dist-ssr
 .claude/*
 DATABASE_ARCHITECTURE.md
 system_prompt.md
+.env
