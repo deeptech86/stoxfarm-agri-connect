@@ -11,6 +11,8 @@ export interface UserResponse {
   phone: string;
   role: 'seller' | 'buyer' | 'logistics' | 'admin';
   address: string;
+  city?: string;
+  pincode?: string;
   profile_pic?: string;
   notes?: string;
   satellite_center_id?: string;
@@ -18,6 +20,7 @@ export interface UserResponse {
   is_active: boolean;
   created_at: string;
   last_login?: string;
+  preferred_produce?: string[];
 }
 
 export interface CreateUserRequest {

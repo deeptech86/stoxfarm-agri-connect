@@ -62,22 +62,21 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name,
+        name: user.name || '',
         email: user.email || '',
         password: '',
-        phone: user.phone,
+        phone: user.phone || '',
         role: user.role,
-        address: user.address,
-        city: (user as unknown as { city?: string }).city || '',
-        pincode: (user as unknown as { pincode?: string }).pincode || '',
+        address: user.address || '',
+        city: user.city || '',
+        pincode: user.pincode || '',
         notes: user.notes || '',
         satelliteCenterId: user.satellite_center_id || '',
       });
       // Load existing preferred_produce if available
-      const userProduce = (user as unknown as { preferred_produce?: string[] }).preferred_produce;
-      if (userProduce && Array.isArray(userProduce)) {
+      if (user.preferred_produce && Array.isArray(user.preferred_produce)) {
         setSelectedProduce(
-          userProduce
+          user.preferred_produce
             .filter((p): p is string => typeof p === 'string' && p.trim().length > 0)
             .map((p) => ({ value: p, label: p }))
         );
