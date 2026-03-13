@@ -61,13 +61,15 @@ const AdminUserManagement = () => {
   const confirmDelete = async () => {
     if (userToDelete) {
       try {
-        await deleteUserMutation.mutateAsync({ id: userToDelete.id });
+        // Use hard delete to permanently remove user from the platform
+        await deleteUserMutation.mutateAsync({ id: userToDelete.id, hard: true });
         toast({
           title: 'User deleted',
-          description: `${userToDelete.name} has been removed from the platform.`,
+          description: `${userToDelete.name} has been permanently removed from the platform.`,
         });
         setDeleteDialogOpen(false);
         setUserToDelete(null);
+        refetch(); // Refresh the list after deletion
       } catch (error) {
         toast({
           title: 'Error',
