@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Users, Shield } from 'lucide-react';
+import { TrendingUp, Users, Shield, Leaf, ArrowLeft } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,
@@ -24,6 +24,44 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Navigation Header */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <Leaf className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-lg font-bold text-foreground">StoxxFarm</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/login')}
+            >
+              Login
+            </Button>
+            <Button
+              onClick={() => navigate('/register')}
+            >
+              Register
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Spacer for fixed nav */}
+      <div className="h-16"></div>
       {/* Hero Carousel Section */}
       <section className="relative overflow-hidden">
         <Carousel
