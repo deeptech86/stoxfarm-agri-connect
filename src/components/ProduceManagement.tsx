@@ -46,9 +46,13 @@ const ProduceManagement = () => {
   const deleteProduceMutation = useDeleteProduce();
   const activateProduceMutation = useActivateProduce();
 
-  const satelliteCenters = centersData?.items || [];
+  const satelliteCenters = (centersData?.items || []).filter(
+    (center): center is (typeof centersData.items)[number] => Boolean(center && center.id)
+  );
 
-  const produceList = produceData?.items || [];
+  const produceList = (produceData?.items || []).filter(
+    (produce): produce is ProduceResponse => Boolean(produce && produce.id && produce.name)
+  );
 
   // Filter produce by search query
   const filteredProduce = produceList.filter(p => {

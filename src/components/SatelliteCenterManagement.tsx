@@ -23,8 +23,12 @@ const SatelliteCenterManagement = () => {
   const { data: searchData, isLoading: isSearching } = useSearchSatelliteCenters(searchQuery);
   const deleteCenterMutation = useDeleteSatelliteCenter();
 
-  const centers = centersData?.items || [];
-  const searchResults = searchData || [];
+  const centers = (centersData?.items || []).filter(
+    (center): center is SatelliteCenterResponse => Boolean(center && center.id && center.name)
+  );
+  const searchResults = (searchData || []).filter(
+    (center): center is SatelliteCenterResponse => Boolean(center && center.id && center.name)
+  );
 
   // Use search results if there's a query, otherwise use all centers
   const filteredCenters = searchQuery ? searchResults : centers;

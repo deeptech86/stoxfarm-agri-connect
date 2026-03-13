@@ -47,8 +47,15 @@ const ListingManagement = () => {
   const adminCreateListingMutation = useAdminCreateListing();
   const deleteListingMutation = useDeleteListing();
 
-  const listings = listingsData?.items || [];
-  const sellers = usersData?.items || [];
+  const listings = (listingsData?.items || []).filter(
+    (listing): listing is ListingResponse => Boolean(listing && listing.id)
+  );
+  const sellers = (usersData?.items || []).filter(
+    (seller): seller is (typeof usersData.items)[number] => Boolean(seller && seller.id && seller.name)
+  );
+  const safeProduceList = (produceList || []).filter(
+    (produce): produce is (typeof produceList)[number] => Boolean(produce && produce.id && produce.name)
+  );
 
   // Filter listings by search query
   const filteredListings = listings.filter(l => {
@@ -109,7 +116,7 @@ const ListingManagement = () => {
   };
 
   const handleProduceChange = (produceId: string) => {
-    const selectedProduce = produceList?.find(p => p.id === produceId);
+    const selectedProduce = safeProduceList.find(p => p.id === produceId);
     if (selectedProduce) {
       const mandiRate = parseFloat(selectedProduce.mandi_rate as unknown as string) || 0;
       setFormData({
@@ -300,7 +307,7 @@ const ListingManagement = () => {
                   <SelectValue placeholder="Select produce" />
                 </SelectTrigger>
                 <SelectContent>
-                  {produceList?.filter(p => p.is_active).map(produce => (
+                  {safeProduceList.filter(p => p.is_active).map(produce => (
                     <SelectItem key={produce.id} value={produce.id}>
                       {produce.name} (₹{parseFloat(produce.mandi_rate as unknown as string).toFixed(2)}/{produce.unit})
                     </SelectItem>

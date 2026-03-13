@@ -29,8 +29,8 @@ const AdminUserManagement = () => {
   const activateUserMutation = useActivateUser();
   const deactivateUserMutation = useDeactivateUser();
 
-  const users = usersData?.items || [];
-  const searchResults = searchData?.items || [];
+  const users = (usersData?.items || []).filter((user): user is UserResponse => Boolean(user && user.id));
+  const searchResults = (searchData?.items || []).filter((user): user is UserResponse => Boolean(user && user.id));
 
   // Use search results if there's a query, otherwise use all users
   const filteredUsers = searchQuery ? searchResults : users.filter(user => {

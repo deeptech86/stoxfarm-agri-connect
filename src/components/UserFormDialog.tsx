@@ -32,12 +32,17 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
   const { data: satelliteCentersData } = useSatelliteCenters(1, 100, undefined, undefined, true);
-  const satelliteCenters = satelliteCentersData?.items || [];
+  const satelliteCenters = (satelliteCentersData?.items || []).filter(
+    (center): center is { id: string; name?: string; city?: string; address?: string } =>
+      Boolean(center && center.id)
+  );
   const { data: produceData } = useProduce(1, 100, undefined, true);
-  const produceOptions: ProduceOption[] = (produceData?.items || []).map(p => ({
-    value: p.name,
-    label: p.name,
-  }));
+  const produceOptions: ProduceOption[] = (produceData?.items || [])
+    .filter((p): p is { name: string } => Boolean(p && p.name))
+    .map((p) => ({
+      value: p.name,
+      label: p.name,
+    }));
 
   const [formData, setFormData] = useState({
     name: '',
@@ -52,7 +57,7 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
     satelliteCenterId: '',
   });
   const [selectedProduce, setSelectedProduce] = useState<ProduceOption[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>();
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (user) {
@@ -71,7 +76,11 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
       // Load existing preferred_produce if available
       const userProduce = (user as unknown as { preferred_produce?: string[] }).preferred_produce;
       if (userProduce && Array.isArray(userProduce)) {
-        setSelectedProduce(userProduce.map(p => ({ value: p, label: p })));
+        setSelectedProduce(
+          userProduce
+            .filter((p): p is string => typeof p === 'string' && p.trim().length > 0)
+            .map((p) => ({ value: p, label: p }))
+        );
       } else {
         setSelectedProduce([]);
       }
@@ -396,11 +405,16 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
-                  {satelliteCenters.map((center) => (
-                    <SelectItem key={center.id} value={center.id}>
-                      {center.name} - {center.city || center.address}
-                    </SelectItem>
-                  ))}
+                  {satelliteCenters.map((center) => {
+                    const centerName = center?.name || center?.city || center?.address || 'Unnamed Center';
+                    const location = center?.city || center?.address || '';
+
+                    return (
+                      <SelectItem key={center.id} value={center.id}>
+                        {location ? `${centerName} - ${location}` : centerName}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

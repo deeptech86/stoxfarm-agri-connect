@@ -2,7 +2,34 @@
  * API Client for StoxxFarm Backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
+const getDefaultApiBaseUrl = () => {
+  // Use local backend only during development; in production prefer same-origin API path.
+  if (import.meta.env.DEV) {
+    return 'http://127.0.0.1:8000/api/v1';
+  }
+
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/api/v1`;
+  }
+
+  return '/api/v1';
+};
+
+const getApiBaseUrl = () => {
+  const envApiUrl = import.meta.env.VITE_API_URL?.trim();
+
+  if (envApiUrl) {
+    // Guard against accidentally shipping localhost API URLs to production.
+    if (!import.meta.env.DEV && /(^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?)/i.test(envApiUrl)) {
+      return getDefaultApiBaseUrl();
+    }
+    return envApiUrl;
+  }
+
+  return getDefaultApiBaseUrl();
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 interface TokenData {
   access_token: string;
