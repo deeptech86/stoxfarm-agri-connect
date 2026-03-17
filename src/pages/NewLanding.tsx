@@ -4,9 +4,12 @@ import { ArrowRight, Leaf, ChevronDown, Truck, Shield, TrendingUp, Users } from 
 import { useEffect, useState, useRef } from 'react';
 import heroVideo from '@/assets/hero-video.mp4';
 import subSectionVideo from '@/assets/sub-section.mp4';
+import LanguageSelector from '@/components/LanguageSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const NewLanding = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -46,19 +49,20 @@ const NewLanding = () => {
             </span>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSelector variant="transparent" scrolled={scrollY > 50} />
             <Button
               variant="ghost"
-              onClick={() => navigate('/signin')}
+              onClick={() => navigate('/login')}
               className={`${scrollY > 50 ? 'text-foreground hover:text-primary' : 'text-white/90 hover:text-white hover:bg-white/10'}`}
             >
-              Sign in
+              {t('nav.signin')}
             </Button>
             <Button
               variant="ghost"
               onClick={() => navigate('/register')}
               className={`${scrollY > 50 ? 'text-foreground hover:text-primary' : 'text-white/90 hover:text-white hover:bg-white/10'}`}
             >
-              Register
+              {t('nav.register')}
             </Button>
           </div>
         </div>
@@ -89,20 +93,20 @@ const NewLanding = () => {
           <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-5 py-2.5 rounded-full mb-8 border border-white/20">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-sm font-medium">Farm to Table, Simplified</span>
+              <span className="text-sm font-medium">{t('hero.badge')}</span>
             </div>
           </div>
 
           <h1 className={`text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-8 leading-[1.1] tracking-tight transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            Fresh Produce,
+            {t('hero.title1')}
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-400">
-              Direct from Farms
+              {t('hero.title2')}
             </span>
           </h1>
 
           <p className={`text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            Connect with local farmers, access real-time market prices, and get premium quality vegetables delivered fresh to your business.
+            {t('hero.description')}
           </p>
 
           <div className={`flex flex-col sm:flex-row gap-4 justify-center transition-all duration-1000 delay-900 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
@@ -111,7 +115,7 @@ const NewLanding = () => {
               onClick={() => navigate('/login')}
               className="bg-white text-foreground hover:bg-white/90 px-8 py-6 text-lg rounded-full font-semibold group shadow-2xl"
             >
-              Start Now
+              {t('hero.cta')}
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
@@ -130,14 +134,14 @@ const NewLanding = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto text-center mb-20">
             <span className="inline-block text-primary font-semibold text-sm tracking-wider uppercase mb-4">
-              Why StoxxFarm
+              {t('features.label')}
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-              The smarter way to source
-              <br />fresh produce
+              {t('features.title1')}
+              <br />{t('features.title2')}
             </h2>
             <p className="text-lg text-muted-foreground">
-              We're building the future of agricultural commerce with technology that connects farmers directly to buyers.
+              {t('features.description')}
             </p>
           </div>
 
@@ -145,26 +149,26 @@ const NewLanding = () => {
             {[
               {
                 icon: TrendingUp,
-                title: "Live Mandi Rates",
-                description: "Real-time market prices from mandis across India",
+                title: t('features.mandiRates'),
+                description: t('features.mandiRatesDesc'),
                 gradient: "from-green-500 to-emerald-600"
               },
               {
                 icon: Users,
-                title: "Direct Connect",
-                description: "Eliminate middlemen, connect directly with farmers",
+                title: t('features.directConnect'),
+                description: t('features.directConnectDesc'),
                 gradient: "from-blue-500 to-cyan-600"
               },
               {
                 icon: Shield,
-                title: "Verified Quality",
-                description: "Admin-verified listings and secure transactions",
+                title: t('features.verifiedQuality'),
+                description: t('features.verifiedQualityDesc'),
                 gradient: "from-purple-500 to-violet-600"
               },
               {
                 icon: Truck,
-                title: "Fast Delivery",
-                description: "Fresh produce delivered with care and speed",
+                title: t('features.fastDelivery'),
+                description: t('features.fastDeliveryDesc'),
                 gradient: "from-orange-500 to-amber-600"
               }
             ].map((feature, index) => (
@@ -189,29 +193,29 @@ const NewLanding = () => {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <span className="inline-block text-primary font-semibold text-sm tracking-wider uppercase mb-4">
-                How It Works
+                {t('howItWorks.label')}
               </span>
               <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-8 leading-tight">
-                Simple steps to
-                <br />get started
+                {t('howItWorks.title1')}
+                <br />{t('howItWorks.title2')}
               </h2>
 
               <div className="space-y-8">
                 {[
                   {
                     step: "01",
-                    title: "Create Account",
-                    desc: "Sign up as a farmer, buyer, or logistics partner in minutes"
+                    title: t('howItWorks.step1Title'),
+                    desc: t('howItWorks.step1Desc')
                   },
                   {
                     step: "02",
-                    title: "Browse & Connect",
-                    desc: "Explore listings, check live prices, and connect with partners"
+                    title: t('howItWorks.step2Title'),
+                    desc: t('howItWorks.step2Desc')
                   },
                   {
                     step: "03",
-                    title: "Trade & Deliver",
-                    desc: "Place bids, finalize deals, and get fresh produce delivered"
+                    title: t('howItWorks.step3Title'),
+                    desc: t('howItWorks.step3Desc')
                   }
                 ].map((item, index) => (
                   <div key={index} className="flex gap-6 group">
@@ -232,7 +236,7 @@ const NewLanding = () => {
                 onClick={() => navigate('/login')}
                 className="mt-10 bg-primary hover:bg-primary/90 rounded-full px-8 py-6 text-lg group"
               >
-                Get Started Now
+                {t('howItWorks.cta')}
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
@@ -266,10 +270,10 @@ const NewLanding = () => {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-16">
               <span className="inline-block text-primary font-semibold text-sm tracking-wider uppercase mb-4">
-                Benefits
+                {t('benefits.label')}
               </span>
               <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-                Everyone wins with StoxxFarm
+                {t('benefits.title')}
               </h2>
             </div>
 
@@ -277,17 +281,17 @@ const NewLanding = () => {
               {/* For Farmers */}
               <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="inline-flex items-center gap-2 bg-green-100 text-primary px-4 py-2 rounded-full mb-6">
-                  <span className="text-sm font-semibold">For Farmers</span>
+                  <span className="text-sm font-semibold">{t('benefits.farmersLabel')}</span>
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mb-4">
-                  Get fair prices for your produce
+                  {t('benefits.farmersTitle')}
                 </h3>
                 <ul className="space-y-4">
                   {[
-                    "Farmers to choose their own pricing",
-                    "Real-time market insights and pricing",
-                    "Secure and timely payments",
-                    "Direct access to end customers with transparent pricing"
+                    t('benefits.farmers1'),
+                    t('benefits.farmers2'),
+                    t('benefits.farmers3'),
+                    t('benefits.farmers4')
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -302,17 +306,17 @@ const NewLanding = () => {
               {/* For Buyers */}
               <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-600 px-4 py-2 rounded-full mb-6">
-                  <span className="text-sm font-semibold">For Buyers</span>
+                  <span className="text-sm font-semibold">{t('benefits.buyersLabel')}</span>
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mb-4">
-                  Source quality produce efficiently
+                  {t('benefits.buyersTitle')}
                 </h3>
                 <ul className="space-y-4">
                   {[
-                    "Farm-fresh vegetables at competitive prices",
-                    "Verified quality from trusted farmers",
-                    "Streamlined ordering and delivery",
-                    "Transparent pricing with no hidden costs"
+                    t('benefits.buyers1'),
+                    t('benefits.buyers2'),
+                    t('benefits.buyers3'),
+                    t('benefits.buyers4')
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -339,10 +343,10 @@ const NewLanding = () => {
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Ready to transform how you trade produce?
+              {t('cta.title')}
             </h2>
             <p className="text-xl text-green-100 mb-10">
-              Join the agricultural revolution. Connect with farmers and buyers across India today.
+              {t('cta.description')}
             </p>
             <div className="flex justify-center">
               <Button
@@ -350,7 +354,7 @@ const NewLanding = () => {
                 onClick={() => navigate('/login')}
                 className="bg-white text-primary hover:bg-green-50 px-10 py-6 text-lg rounded-full font-semibold shadow-xl group"
               >
-                Start Free Today
+                {t('cta.button')}
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
@@ -370,28 +374,28 @@ const NewLanding = () => {
                 <span className="text-xl font-bold text-white">StoxxFarm</span>
               </div>
               <p className="text-gray-400 max-w-sm leading-relaxed">
-                Connecting farmers directly with buyers for fresh, quality produce at fair prices. Building a sustainable agricultural ecosystem for India.
+                {t('footer.description')}
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-white mb-6">Quick Links</h4>
+              <h4 className="font-semibold text-white mb-6">{t('footer.quickLinks')}</h4>
               <ul className="space-y-3">
                 <li>
                   <button onClick={() => navigate('/login')} className="text-gray-400 hover:text-white transition-colors">
-                    Sign In
+                    {t('nav.signin')}
                   </button>
                 </li>
                 <li>
                   <button onClick={() => navigate('/register')} className="text-gray-400 hover:text-white transition-colors">
-                    Register
+                    {t('nav.register')}
                   </button>
                 </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-white mb-6">Contact</h4>
+              <h4 className="font-semibold text-white mb-6">{t('footer.contact')}</h4>
               <ul className="space-y-3 text-gray-400">
                 <li>contact@stoxxfarm.in</li>
                 <li>999-999-8888</li>
@@ -401,7 +405,7 @@ const NewLanding = () => {
           </div>
 
           <div className="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
-            <p>&copy; {new Date().getFullYear()} StoxxFarm. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} StoxxFarm. {t('footer.copyright')}</p>
           </div>
         </div>
       </footer>
