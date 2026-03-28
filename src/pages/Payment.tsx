@@ -5,13 +5,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useUpdatePaymentStatus } from '@/hooks/useTransactions';
 import { CreditCard, Lock, ArrowLeft, CheckCircle, Building2, Loader2, Download, FileText } from 'lucide-react';
 import { transactionService, TransactionResponse } from '@/services/transaction.service';
+import { paymentService, RazorpaySuccessResponse, RazorpayErrorResponse } from '@/services/payment.service';
 import { generateBuyerReceipt, generateSellerReceipt, downloadReceipt } from '@/services/receipt.service';
 
 interface PaymentState {
@@ -32,15 +30,9 @@ const Payment = () => {
   const { toast } = useToast();
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [completedTransaction, setCompletedTransaction] = useState<TransactionResponse | null>(null);
-  const updatePaymentStatus = useUpdatePaymentStatus();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const paymentData = location.state as PaymentState | null;
-
-  // Form state for card details
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [cardName, setCardName] = useState('');
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -50,98 +42,77 @@ const Payment = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || '';
-    const parts = [];
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-    if (parts.length) {
-      return parts.join(' ');
-    } else {
-      return value;
-    }
-  };
+  const handleRazorpayPayment = async () => {
+    if (!user) return;
 
-  const formatExpiryDate = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    if (v.length >= 2) {
-      return v.substring(0, 2) + '/' + v.substring(2, 4);
-    }
-    return v;
-  };
-
-  const handlePayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Basic validation
-    if (!cardNumber || cardNumber.replace(/\s/g, '').length < 16) {
-      toast({
-        title: t('paymentPage.invalidCard'),
-        description: t('paymentPage.invalidCardDesc'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!expiryDate || expiryDate.length < 5) {
-      toast({
-        title: t('paymentPage.invalidExpiry'),
-        description: t('paymentPage.invalidExpiryDesc'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!cvv || cvv.length < 3) {
-      toast({
-        title: t('paymentPage.invalidCvv'),
-        description: t('paymentPage.invalidCvvDesc'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!cardName.trim()) {
-      toast({
-        title: t('paymentPage.nameRequired'),
-        description: t('paymentPage.nameRequiredDesc'),
-        variant: 'destructive',
-      });
-      return;
-    }
+    setIsProcessing(true);
 
     try {
-      // Update payment status to completed via backend API
-      await updatePaymentStatus.mutateAsync({
-        transactionId: paymentData.transactionId,
-        status: 'completed',
-        paymentMethod: 'card',
-        paymentReference: `PAY-${Date.now()}`,
-      });
+      // Create Razorpay order
+      const orderData = await paymentService.createOrder(paymentData.transactionId);
 
-      // Fetch the complete transaction details for receipt generation
-      try {
-        const transaction = await transactionService.getTransaction(paymentData.transactionId);
-        setCompletedTransaction(transaction);
-      } catch {
-        console.error('Failed to fetch transaction details for receipt');
-      }
+      // Open Razorpay checkout
+      await paymentService.openCheckout(
+        orderData,
+        {
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+        },
+        async (response: RazorpaySuccessResponse) => {
+          // Payment successful - verify with backend
+          try {
+            await paymentService.verifyPayment({
+              transaction_id: paymentData.transactionId,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
 
-      setPaymentSuccess(true);
+            // Fetch transaction details for receipt
+            try {
+              const transaction = await transactionService.getTransaction(paymentData.transactionId);
+              setCompletedTransaction(transaction);
+            } catch {
+              console.error('Failed to fetch transaction details for receipt');
+            }
 
-      toast({
-        title: t('paymentPage.success'),
-        description: t('paymentPage.successDesc'),
-      });
+            setPaymentSuccess(true);
+            toast({
+              title: t('paymentPage.success'),
+              description: t('paymentPage.successDesc'),
+            });
+          } catch (error) {
+            toast({
+              title: t('paymentPage.failed'),
+              description: 'Payment verification failed. Please contact support.',
+              variant: 'destructive',
+            });
+          }
+          setIsProcessing(false);
+        },
+        (error: RazorpayErrorResponse) => {
+          // Payment failed
+          toast({
+            title: t('paymentPage.failed'),
+            description: error.description || 'Payment failed. Please try again.',
+            variant: 'destructive',
+          });
+          setIsProcessing(false);
+        },
+        () => {
+          // Payment dismissed
+          setIsProcessing(false);
+        }
+      );
     } catch (error) {
+      console.error('Payment error:', error);
       toast({
         title: t('paymentPage.failed'),
-        description: t('paymentPage.invalidCardDesc'),
+        description: 'Failed to initiate payment. Please try again.',
         variant: 'destructive',
       });
+      setIsProcessing(false);
     }
   };
 
@@ -312,96 +283,61 @@ const Payment = () => {
                   </div>
                   <div>
                     <CardTitle>{t('paymentPage.paymentDetails')}</CardTitle>
-                    <CardDescription>{t('paymentPage.enterCard')}</CardDescription>
+                    <CardDescription>Pay securely with Razorpay</CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <form onSubmit={handlePayment}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cardName">{t('paymentPage.nameOnCard')}</Label>
-                    <Input
-                      id="cardName"
-                      placeholder="John Doe"
-                      value={cardName}
-                      onChange={(e) => setCardName(e.target.value)}
-                      disabled={updatePaymentStatus.isPending}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNumber">{t('paymentPage.cardNumber')}</Label>
-                    <div className="relative">
-                      <Input
-                        id="cardNumber"
-                        placeholder="1234 5678 9012 3456"
-                        value={cardNumber}
-                        onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                        maxLength={19}
-                        disabled={updatePaymentStatus.isPending}
-                      />
-                      <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">R</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold">Razorpay Secure Checkout</p>
+                      <p className="text-sm text-muted-foreground">UPI, Cards, Net Banking & More</p>
                     </div>
                   </div>
+                  <Separator />
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-white p-2 rounded border text-center text-xs font-medium">UPI</div>
+                    <div className="bg-white p-2 rounded border text-center text-xs font-medium">Cards</div>
+                    <div className="bg-white p-2 rounded border text-center text-xs font-medium">NetBanking</div>
+                    <div className="bg-white p-2 rounded border text-center text-xs font-medium">Wallets</div>
+                  </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="expiry">{t('paymentPage.expiryDate')}</Label>
-                      <Input
-                        id="expiry"
-                        placeholder="MM/YY"
-                        value={expiryDate}
-                        onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
-                        maxLength={5}
-                        disabled={updatePaymentStatus.isPending}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cvv">{t('paymentPage.cvv')}</Label>
-                      <Input
-                        id="cvv"
-                        type="password"
-                        placeholder="123"
-                        value={cvv}
-                        onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        maxLength={4}
-                        disabled={updatePaymentStatus.isPending}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                    <Lock className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-xs text-muted-foreground">
-                      {t('paymentPage.secureNote')}
-                    </p>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex-col gap-3">
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    size="lg"
-                    disabled={updatePaymentStatus.isPending}
-                  >
-                    {updatePaymentStatus.isPending ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        {t('paymentPage.processing')}
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="h-4 w-4 mr-2" />
-                        {t('paymentPage.pay')} ₹{paymentData.totalAmount.toFixed(2)}
-                      </>
-                    )}
-                  </Button>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Building2 className="h-4 w-4" />
-                    <span>{t('paymentPage.poweredBy')}</span>
-                  </div>
-                </CardFooter>
-              </form>
+                <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <Lock className="h-4 w-4 text-green-600" />
+                  <p className="text-xs text-green-700">
+                    {t('paymentPage.secureNote')}
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter className="flex-col gap-3">
+                <Button
+                  onClick={handleRazorpayPayment}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  size="lg"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {t('paymentPage.processing')}
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4 mr-2" />
+                      {t('paymentPage.pay')} ₹{paymentData.totalAmount.toFixed(2)}
+                    </>
+                  )}
+                </Button>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Building2 className="h-4 w-4" />
+                  <span>Powered by Razorpay</span>
+                </div>
+              </CardFooter>
             </Card>
           </div>
         </div>

@@ -19,3 +19,6 @@ export * from './notification.service';
 
 export { default as deliveryService } from './delivery.service';
 export * from './delivery.service';
+
+export { default as paymentService } from './payment.service';
+export * from './payment.service';
