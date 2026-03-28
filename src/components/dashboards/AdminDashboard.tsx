@@ -17,9 +17,11 @@ import ProduceManagement from '@/components/ProduceManagement';
 import ListingManagement from '@/components/ListingManagement';
 import { useToast } from '@/hooks/use-toast';
 import { Banknote, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AdminDashboard = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [filterProduce, setFilterProduce] = useState('all');
 
   // Fetch data
@@ -48,13 +50,13 @@ const AdminDashboard = () => {
     try {
       await markSellerPaidMutation.mutateAsync({ transactionId });
       toast({
-        title: 'Seller Paid',
-        description: `₹${amount.toFixed(2)} has been paid to ${sellerName}.`,
+        title: t('common.success'),
+        description: `₹${amount.toFixed(2)} ${t('payment.paidToSeller')} ${sellerName}.`,
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to mark seller as paid.',
+        title: t('common.error'),
+        description: t('common.error'),
         variant: 'destructive',
       });
     }
@@ -71,50 +73,50 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Manage listings and monitor transactions</p>
+        <h1 className="text-3xl font-bold">{t('admin.dashboard')}</h1>
+        <p className="text-muted-foreground">{t('admin.manageListings')}</p>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{activeListings.length}</CardTitle>
-            <CardDescription>Active Listings</CardDescription>
+            <CardDescription>{t('seller.activeListings')}</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{expiredListings.length}</CardTitle>
-            <CardDescription>Expired Listings</CardDescription>
+            <CardDescription>{t('seller.expiredListings')}</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{transactions.length}</CardTitle>
-            <CardDescription>Total Transactions</CardDescription>
+            <CardDescription>{t('admin.totalTransactions')}</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{allListings.length}</CardTitle>
-            <CardDescription>All Listings</CardDescription>
+            <CardDescription>{t('admin.allListings')}</CardDescription>
           </CardHeader>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Filter by Produce</CardTitle>
+          <CardTitle>{t('common.filter')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="filter-produce">Produce Type</Label>
+            <Label htmlFor="filter-produce">{t('produce.category')}</Label>
             <Select value={filterProduce} onValueChange={setFilterProduce}>
               <SelectTrigger id="filter-produce">
-                <SelectValue placeholder="All produce" />
+                <SelectValue placeholder={t('common.all')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Produce</SelectItem>
+                <SelectItem value="all">{t('common.all')}</SelectItem>
                 {produceList?.filter(p => p.is_active).map(p => (
                   <SelectItem key={p.id} value={p.name}>
                     {p.name}
@@ -128,10 +130,10 @@ const AdminDashboard = () => {
 
       <Tabs defaultValue="active" className="space-y-4">
         <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="active">Active ({filteredActive.length})</TabsTrigger>
-          <TabsTrigger value="expired">Expired ({filteredExpired.length})</TabsTrigger>
-          <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="tracking">Live Tracking</TabsTrigger>
+          <TabsTrigger value="active">{t('common.active')} ({filteredActive.length})</TabsTrigger>
+          <TabsTrigger value="expired">{t('listing.expired')} ({filteredExpired.length})</TabsTrigger>
+          <TabsTrigger value="transactions">{t('admin.totalTransactions')}</TabsTrigger>
+          <TabsTrigger value="tracking">{t('common.status')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">
@@ -153,8 +155,8 @@ const AdminDashboard = () => {
         <TabsContent value="transactions" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Transaction History</CardTitle>
-              <CardDescription>All confirmed transactions</CardDescription>
+              <CardTitle>{t('admin.allTransactions')}</CardTitle>
+              <CardDescription>{t('common.completed')}</CardDescription>
             </CardHeader>
             <CardContent>
               {transactionsLoading ? (
@@ -165,55 +167,55 @@ const AdminDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Seller</TableHead>
-                      <TableHead>Buyer</TableHead>
-                      <TableHead>Produce</TableHead>
-                      <TableHead>Qty (kg)</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Buyer Paid (₹)</TableHead>
-                      <TableHead>Seller Payout (₹)</TableHead>
-                      <TableHead>Action</TableHead>
+                      <TableHead>{t('seller.dashboard')}</TableHead>
+                      <TableHead>{t('buyer.dashboard')}</TableHead>
+                      <TableHead>{t('produce.title')}</TableHead>
+                      <TableHead>{t('common.quantity')}</TableHead>
+                      <TableHead>{t('common.status')}</TableHead>
+                      <TableHead>{t('common.amount')}</TableHead>
+                      <TableHead>{t('payment.awaitingPayout')}</TableHead>
+                      <TableHead>{t('common.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {transactions.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={8} className="text-center text-muted-foreground">
-                          No transactions yet
+                          {t('common.noData')}
                         </TableCell>
                       </TableRow>
                     ) : (
-                      transactions.map(t => (
-                        <TableRow key={t.id}>
-                          <TableCell>{t.seller_name}</TableCell>
-                          <TableCell>{t.buyer_name}</TableCell>
-                          <TableCell>{t.produce_name}</TableCell>
-                          <TableCell>{t.quantity}</TableCell>
+                      transactions.map(tx => (
+                        <TableRow key={tx.id}>
+                          <TableCell>{tx.seller_name}</TableCell>
+                          <TableCell>{tx.buyer_name}</TableCell>
+                          <TableCell>{tx.produce_name}</TableCell>
+                          <TableCell>{tx.quantity}</TableCell>
                           <TableCell>
-                            <Badge variant={t.payment_status === 'completed' ? 'default' : 'secondary'}>
-                              {t.payment_status === 'completed' ? 'Payment Completed' : 'Pending Payment'}
+                            <Badge variant={tx.payment_status === 'completed' ? 'default' : 'secondary'}>
+                              {tx.payment_status === 'completed' ? t('common.completed') : t('common.pending')}
                             </Badge>
                           </TableCell>
-                          <TableCell>₹{t.buyer_total_amount.toFixed(2)}</TableCell>
-                          <TableCell>₹{t.seller_payout_amount.toFixed(2)}</TableCell>
+                          <TableCell>₹{tx.buyer_total_amount.toFixed(2)}</TableCell>
+                          <TableCell>₹{tx.seller_payout_amount.toFixed(2)}</TableCell>
                           <TableCell>
-                            {t.seller_paid ? (
+                            {tx.seller_paid ? (
                               <Badge variant="outline" className="text-green-600 border-green-600">
-                                Paid
+                                {t('payment.paidToSeller')}
                               </Badge>
                             ) : (
                               <Button
                                 size="sm"
                                 variant="outline"
-                                disabled={t.payment_status !== 'completed' || markSellerPaidMutation.isPending}
-                                onClick={() => handlePaySeller(t.id, t.seller_name, t.seller_payout_amount)}
+                                disabled={tx.payment_status !== 'completed' || markSellerPaidMutation.isPending}
+                                onClick={() => handlePaySeller(tx.id, tx.seller_name, tx.seller_payout_amount)}
                               >
                                 {markSellerPaidMutation.isPending ? (
                                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                                 ) : (
                                   <Banknote className="h-4 w-4 mr-1" />
                                 )}
-                                Pay Seller
+                                {t('payment.markAsPaid')}
                               </Button>
                             )}
                           </TableCell>
@@ -235,8 +237,8 @@ const AdminDashboard = () => {
       {/* User Management Section */}
       <div className="pt-6 border-t">
         <div className="mb-4">
-          <h2 className="text-2xl font-bold">User Management</h2>
-          <p className="text-muted-foreground">Create, modify, or delete users ({users.length} total)</p>
+          <h2 className="text-2xl font-bold">{t('admin.manageUsers')}</h2>
+          <p className="text-muted-foreground">{t('common.total')}: {users.length}</p>
         </div>
         <AdminUserManagement />
       </div>
@@ -244,8 +246,8 @@ const AdminDashboard = () => {
       {/* Satellite Center Management Section */}
       <div className="pt-6 border-t">
         <div className="mb-4">
-          <h2 className="text-2xl font-bold">Satellite Center Management</h2>
-          <p className="text-muted-foreground">Manage regional collection and distribution centers</p>
+          <h2 className="text-2xl font-bold">{t('admin.manageCenters')}</h2>
+          <p className="text-muted-foreground">{t('admin.manageCenters')}</p>
         </div>
         <SatelliteCenterManagement />
       </div>
@@ -253,8 +255,8 @@ const AdminDashboard = () => {
       {/* Produce Management Section */}
       <div className="pt-6 border-t">
         <div className="mb-4">
-          <h2 className="text-2xl font-bold">Produce Management</h2>
-          <p className="text-muted-foreground">Create, edit, or delete produce items available for listing</p>
+          <h2 className="text-2xl font-bold">{t('admin.manageProduce')}</h2>
+          <p className="text-muted-foreground">{t('produce.description')}</p>
         </div>
         <ProduceManagement />
       </div>
@@ -262,8 +264,8 @@ const AdminDashboard = () => {
       {/* Listing Management Section */}
       <div className="pt-6 border-t">
         <div className="mb-4">
-          <h2 className="text-2xl font-bold">Listing Management</h2>
-          <p className="text-muted-foreground">Create and manage marketplace listings on behalf of sellers</p>
+          <h2 className="text-2xl font-bold">{t('admin.totalListings')}</h2>
+          <p className="text-muted-foreground">{t('admin.manageListings')}</p>
         </div>
         <ListingManagement />
       </div>

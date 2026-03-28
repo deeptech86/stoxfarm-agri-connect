@@ -10,12 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import DeliveryTrackingList from '@/components/DeliveryTrackingList';
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const LogisticsDashboard = () => {
   const { data: deliveriesData, isLoading: deliveriesLoading, refetch: refetchDeliveries } = useLogisticsDeliveries(1, 100);
   const { data: activeDeliveriesData } = useActiveDeliveries(1, 100);
   const { data: availableDrivers } = useAvailableDrivers();
   const assignDriverMutation = useAssignDriver();
+  const { t } = useLanguage();
 
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
@@ -39,8 +41,8 @@ const LogisticsDashboard = () => {
         driverId: selectedDriverId,
       });
       toast({
-        title: 'Driver Assigned',
-        description: 'The driver has been assigned to this delivery.',
+        title: t('delivery.driverAssigned'),
+        description: t('logistics.driverAssignedSuccess'),
       });
       setAssignDialogOpen(false);
       setSelectedDeliveryId(null);
@@ -48,8 +50,8 @@ const LogisticsDashboard = () => {
       refetchDeliveries();
     } catch {
       toast({
-        title: 'Error',
-        description: 'Failed to assign driver. Please try again.',
+        title: t('common.error'),
+        description: t('logistics.assignDriverError'),
         variant: 'destructive',
       });
     }
@@ -58,17 +60,17 @@ const LogisticsDashboard = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary">Pending Pickup</Badge>;
+        return <Badge variant="secondary">{t('delivery.pendingPickup')}</Badge>;
       case 'assigned':
-        return <Badge variant="outline">Driver Assigned</Badge>;
+        return <Badge variant="outline">{t('delivery.driverAssigned')}</Badge>;
       case 'picked_up':
-        return <Badge className="bg-blue-500">Picked Up</Badge>;
+        return <Badge className="bg-blue-500">{t('delivery.pickedUp')}</Badge>;
       case 'in_transit':
-        return <Badge className="bg-orange-500">In Transit</Badge>;
+        return <Badge className="bg-orange-500">{t('delivery.inTransit')}</Badge>;
       case 'delivered':
-        return <Badge className="bg-green-500">Delivered</Badge>;
+        return <Badge className="bg-green-500">{t('delivery.delivered')}</Badge>;
       case 'cancelled':
-        return <Badge variant="destructive">Cancelled</Badge>;
+        return <Badge variant="destructive">{t('delivery.cancelled')}</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -85,39 +87,39 @@ const LogisticsDashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Logistics Dashboard</h1>
-        <p className="text-muted-foreground">Manage deliveries and shipments</p>
+        <h1 className="text-3xl font-bold">{t('logistics.dashboard')}</h1>
+        <p className="text-muted-foreground">{t('logistics.manageDeliveries')}</p>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{deliveries.length}</CardTitle>
-            <CardDescription>Total Deliveries</CardDescription>
+            <CardDescription>{t('logistics.totalDeliveries')}</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{pendingCount}</CardTitle>
-            <CardDescription>Pending Assignment</CardDescription>
+            <CardDescription>{t('logistics.pendingPickup')}</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{assignedCount}</CardTitle>
-            <CardDescription>Assigned</CardDescription>
+            <CardDescription>{t('delivery.driverAssigned')}</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{inTransitCount}</CardTitle>
-            <CardDescription>In Transit</CardDescription>
+            <CardDescription>{t('logistics.inTransit')}</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{deliveredCount}</CardTitle>
-            <CardDescription>Delivered</CardDescription>
+            <CardDescription>{t('logistics.delivered')}</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -127,29 +129,29 @@ const LogisticsDashboard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Pending Deliveries
+            {t('logistics.pendingDeliveries')}
           </CardTitle>
-          <CardDescription>Deliveries awaiting driver assignment</CardDescription>
+          <CardDescription>{t('logistics.awaitingDriverAssignment')}</CardDescription>
         </CardHeader>
         <CardContent>
           {pendingDeliveries.length === 0 ? (
             <div className="py-12 text-center">
               <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No pending deliveries</p>
+              <p className="text-muted-foreground">{t('logistics.noDeliveries')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Pick Address</TableHead>
-                    <TableHead>Pickup Phone</TableHead>
-                    <TableHead>Item</TableHead>
-                    <TableHead>Qty</TableHead>
-                    <TableHead>Delivery Address</TableHead>
-                    <TableHead>Delivery Phone</TableHead>
-                    <TableHead>ETA</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead>{t('logistics.pickupAddress')}</TableHead>
+                    <TableHead>{t('logistics.pickupPhone')}</TableHead>
+                    <TableHead>{t('logistics.item')}</TableHead>
+                    <TableHead>{t('logistics.qty')}</TableHead>
+                    <TableHead>{t('logistics.deliveryAddress')}</TableHead>
+                    <TableHead>{t('logistics.deliveryPhone')}</TableHead>
+                    <TableHead>{t('logistics.eta')}</TableHead>
+                    <TableHead>{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -203,7 +205,7 @@ const LogisticsDashboard = () => {
                                 </p>
                               </>
                             ) : (
-                              <span className="text-muted-foreground">Not set</span>
+                              <span className="text-muted-foreground">{t('logistics.notSet')}</span>
                             )}
                           </div>
                         </div>
@@ -222,25 +224,25 @@ const LogisticsDashboard = () => {
                               onClick={() => setSelectedDeliveryId(delivery.id)}
                             >
                               <Truck className="h-4 w-4 mr-1" />
-                              Assign
+                              {t('logistics.assign')}
                             </Button>
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>Assign Driver</DialogTitle>
+                              <DialogTitle>{t('logistics.assignDriver')}</DialogTitle>
                               <DialogDescription>
-                                Select a driver to assign to this delivery
+                                {t('logistics.selectDriverDescription')}
                               </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                               <div className="space-y-2">
-                                <label className="text-sm font-medium">Available Drivers</label>
+                                <label className="text-sm font-medium">{t('logistics.availableDrivers')}</label>
                                 <Select
                                   value={selectedDriverId}
                                   onValueChange={setSelectedDriverId}
                                 >
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select a driver" />
+                                    <SelectValue placeholder={t('logistics.selectDriver')} />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {availableDrivers && availableDrivers.length > 0 ? (
@@ -254,14 +256,14 @@ const LogisticsDashboard = () => {
                                         </SelectItem>
                                       ))
                                     ) : (
-                                      <SelectItem value="" disabled>No available drivers</SelectItem>
+                                      <SelectItem value="" disabled>{t('logistics.noAvailableDrivers')}</SelectItem>
                                     )}
                                   </SelectContent>
                                 </Select>
                               </div>
                               <div className="flex justify-end gap-2">
                                 <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
-                                  Cancel
+                                  {t('common.cancel')}
                                 </Button>
                                 <Button
                                   onClick={handleAssignDriver}
@@ -270,10 +272,10 @@ const LogisticsDashboard = () => {
                                   {assignDriverMutation.isPending ? (
                                     <>
                                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                      Assigning...
+                                      {t('logistics.assigning')}
                                     </>
                                   ) : (
-                                    'Assign Driver'
+                                    t('logistics.assignDriver')
                                   )}
                                 </Button>
                               </div>
@@ -295,26 +297,26 @@ const LogisticsDashboard = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Active Deliveries</CardTitle>
-          <CardDescription>Orders in progress</CardDescription>
+          <CardTitle>{t('logistics.activeDeliveries')}</CardTitle>
+          <CardDescription>{t('logistics.ordersInProgress')}</CardDescription>
         </CardHeader>
         <CardContent>
           {activeDeliveries.length === 0 ? (
             <div className="py-12 text-center">
               <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No active deliveries</p>
+              <p className="text-muted-foreground">{t('logistics.noActiveDeliveries')}</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tracking #</TableHead>
-                  <TableHead>Origin</TableHead>
-                  <TableHead>Destination</TableHead>
-                  <TableHead>Produce</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Driver</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t('logistics.trackingNumber')}</TableHead>
+                  <TableHead>{t('logistics.origin')}</TableHead>
+                  <TableHead>{t('logistics.destination')}</TableHead>
+                  <TableHead>{t('logistics.produce')}</TableHead>
+                  <TableHead>{t('common.quantity')}</TableHead>
+                  <TableHead>{t('logistics.driver')}</TableHead>
+                  <TableHead>{t('common.status')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -348,7 +350,7 @@ const LogisticsDashboard = () => {
                           <p className="text-xs text-muted-foreground">{d.driver.vehicle_number}</p>
                         </div>
                       ) : (
-                        <span className="text-muted-foreground">Not assigned</span>
+                        <span className="text-muted-foreground">{t('logistics.notAssigned')}</span>
                       )}
                     </TableCell>
                     <TableCell>{getStatusBadge(d.status)}</TableCell>

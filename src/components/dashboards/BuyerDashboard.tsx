@@ -11,6 +11,7 @@ import { useUserTransactions } from '@/hooks/useTransactions';
 import ListingCard from '@/components/ListingCard';
 import { Search, Info, CreditCard, Loader2, FileText, Download, Receipt } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import CounterOfferDialog from '@/components/CounterOfferDialog';
 import { Bid, Listing } from '@/types/produce';
@@ -23,6 +24,7 @@ const BuyerDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [searchProduce, setSearchProduce] = useState('all');
   const [selectedCounterBid, setSelectedCounterBid] = useState<Bid | null>(null);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
@@ -68,8 +70,8 @@ const BuyerDashboard = () => {
     downloadReceipt(doc, `StoxxFarm_Receipt_Buyer_${transaction.transaction_number}.pdf`);
 
     toast({
-      title: 'Receipt Downloaded',
-      description: 'Your payment receipt has been downloaded.',
+      title: t('receipt.downloaded'),
+      description: t('receipt.downloadedDesc'),
     });
   };
 
@@ -98,25 +100,25 @@ const BuyerDashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Browse Listings</h1>
-        <p className="text-muted-foreground">Find and bid on fresh produce</p>
+        <h1 className="text-3xl font-bold">{t('buyer.browseListings')}</h1>
+        <p className="text-muted-foreground">{t('buyer.searchListings')}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Search Produce</CardTitle>
-          <CardDescription>Find listings by produce type</CardDescription>
+          <CardTitle>{t('common.search')}</CardTitle>
+          <CardDescription>{t('buyer.searchListings')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="produce">Select Produce</Label>
+              <Label htmlFor="produce">{t('common.filter')}</Label>
               <Select value={searchProduce} onValueChange={setSearchProduce}>
                 <SelectTrigger id="produce">
-                  <SelectValue placeholder="All produce" />
+                  <SelectValue placeholder={t('common.all')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Produce</SelectItem>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
                   {produceList?.filter(p => p.is_active).map(p => (
                     <SelectItem key={p.id} value={p.name}>
                       {p.name}
@@ -136,8 +138,8 @@ const BuyerDashboard = () => {
             <div className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-green-600" />
               <div>
-                <CardTitle className="text-green-800">Pending Payments</CardTitle>
-                <CardDescription>Complete payment for accepted bids</CardDescription>
+                <CardTitle className="text-green-800">{t('buyer.paymentPending')}</CardTitle>
+                <CardDescription>{t('payment.awaitingPayment')}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -150,11 +152,11 @@ const BuyerDashboard = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Produce</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Rate</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead>{t('listing.title')}</TableHead>
+                    <TableHead>{t('common.quantity')}</TableHead>
+                    <TableHead>{t('bid.pricePerUnit')}</TableHead>
+                    <TableHead>{t('common.total')}</TableHead>
+                    <TableHead>{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -203,7 +205,7 @@ const BuyerDashboard = () => {
                           onClick={() => handlePayNow(transaction)}
                         >
                           <CreditCard className="h-4 w-4 mr-1" />
-                          Pay Now
+                          {t('payment.awaitingPayment')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -222,18 +224,18 @@ const BuyerDashboard = () => {
             <div className="flex items-center gap-2">
               <Receipt className="h-5 w-5 text-primary" />
               <div>
-                <CardTitle>My Payments</CardTitle>
-                <CardDescription>View and download receipts for completed payments</CardDescription>
+                <CardTitle>{t('buyer.myBids')}</CardTitle>
+                <CardDescription>{t('common.download')}</CardDescription>
               </div>
             </div>
             <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter status" />
+                <SelectValue placeholder={t('common.filter')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="completed">Awaiting Delivery</SelectItem>
-                <SelectItem value="paid">Completed</SelectItem>
-                <SelectItem value="all">All Completed</SelectItem>
+                <SelectItem value="completed">{t('payment.awaitingPayout')}</SelectItem>
+                <SelectItem value="paid">{t('common.completed')}</SelectItem>
+                <SelectItem value="all">{t('common.all')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -245,18 +247,18 @@ const BuyerDashboard = () => {
             </div>
           ) : completedPayments.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No completed payments found
+              {t('common.noData')}
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Produce</TableHead>
-                  <TableHead>Seller</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Amount Paid</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Receipt</TableHead>
+                  <TableHead>{t('listing.title')}</TableHead>
+                  <TableHead>{t('common.name')}</TableHead>
+                  <TableHead>{t('common.quantity')}</TableHead>
+                  <TableHead>{t('common.amount')}</TableHead>
+                  <TableHead>{t('common.status')}</TableHead>
+                  <TableHead>{t('common.download')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -301,10 +303,10 @@ const BuyerDashboard = () => {
                     <TableCell>
                       {transaction.seller_paid ? (
                         <Badge variant="outline" className="text-green-600 border-green-600">
-                          Completed
+                          {t('common.completed')}
                         </Badge>
                       ) : (
-                        <Badge variant="secondary">Awaiting Delivery</Badge>
+                        <Badge variant="secondary">{t('payment.awaitingPayout')}</Badge>
                       )}
                     </TableCell>
                     <TableCell>
@@ -329,8 +331,8 @@ const BuyerDashboard = () => {
       {counterBids.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Counter Offers</CardTitle>
-            <CardDescription>Sellers have proposed different prices</CardDescription>
+            <CardTitle>{t('buyer.counterOffers')}</CardTitle>
+            <CardDescription>{t('bid.counterProposed')}</CardDescription>
           </CardHeader>
           <CardContent>
             {bidsLoading ? (
@@ -341,10 +343,10 @@ const BuyerDashboard = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Your Bid</TableHead>
-                    <TableHead>Counter Offer</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead>{t('common.quantity')}</TableHead>
+                    <TableHead>{t('bid.pricePerUnit')}</TableHead>
+                    <TableHead>{t('bid.counterPrice')}</TableHead>
+                    <TableHead>{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -363,7 +365,7 @@ const BuyerDashboard = () => {
                               setSelectedListing(listing || null);
                             }}
                           >
-                            Review
+                            {t('common.view')}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -378,13 +380,13 @@ const BuyerDashboard = () => {
 
       <div>
         <h2 className="text-xl font-semibold mb-4">
-          Available Listings ({activeListings.length})
+          {t('buyer.availableListings')} ({activeListings.length})
         </h2>
         {activeListings.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No listings found</p>
+              <p className="text-muted-foreground">{t('buyer.noListings')}</p>
             </CardContent>
           </Card>
         ) : (

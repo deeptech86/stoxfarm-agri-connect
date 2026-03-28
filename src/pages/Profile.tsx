@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,7 @@ const Profile = () => {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const updateUserMutation = useUpdateUser();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -47,14 +49,14 @@ const Profile = () => {
       await refreshUser();
       setEditing(false);
       toast({
-        title: 'Profile Updated',
-        description: 'Your profile has been updated successfully.',
+        title: t('profile.updated'),
+        description: t('profile.updatedDesc'),
       });
     } catch (error: unknown) {
       console.error('Profile update error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile. Please try again.';
+      const errorMessage = error instanceof Error ? error.message : t('profile.updateError');
       toast({
-        title: 'Error',
+        title: t('common.error'),
         description: errorMessage,
         variant: 'destructive',
       });
@@ -70,12 +72,12 @@ const Profile = () => {
           onClick={() => navigate('/dashboard')}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
+          {t('common.back')}
         </Button>
         <Card>
           <CardHeader>
-            <CardTitle>My Profile</CardTitle>
-            <CardDescription>Manage your profile information</CardDescription>
+            <CardTitle>{t('profile.title')}</CardTitle>
+            <CardDescription>{t('profile.description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col items-center gap-4">
@@ -87,23 +89,23 @@ const Profile = () => {
               </Avatar>
               <Button variant="outline" size="sm">
                 <Camera className="h-4 w-4 mr-2" />
-                Change Photo
+                {t('profile.changePhoto')}
               </Button>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label>{t('common.email')}</Label>
                 <Input value={user.email} disabled />
               </div>
 
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label>{t('common.role')}</Label>
                 <Input value={user.role} disabled className="capitalize" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{t('common.name')}</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -113,7 +115,7 @@ const Profile = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{t('common.phone')}</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
@@ -123,7 +125,7 @@ const Profile = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">{t('common.address')}</Label>
                 <Input
                   id="address"
                   value={formData.address}
@@ -134,7 +136,7 @@ const Profile = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="city">{t('common.city')}</Label>
                   <Input
                     id="city"
                     value={formData.city}
@@ -144,7 +146,7 @@ const Profile = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="pincode">Pincode</Label>
+                  <Label htmlFor="pincode">{t('common.pincode')}</Label>
                   <Input
                     id="pincode"
                     value={formData.pincode}
@@ -157,7 +159,7 @@ const Profile = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
+                <Label htmlFor="notes">{t('profile.notes')}</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
@@ -170,21 +172,21 @@ const Profile = () => {
               {/* Satellite Center Fields - for Seller, Buyer, Logistics */}
               {['seller', 'buyer', 'logistics'].includes(user.role) && (
                 <div className="p-4 bg-muted/50 rounded-lg space-y-4">
-                  <Label className="text-base font-semibold">Satellite Center Information</Label>
+                  <Label className="text-base font-semibold">{t('profile.satelliteInfo')}</Label>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="satelliteCenterName">Satellite Center Name</Label>
+                      <Label htmlFor="satelliteCenterName">{t('centers.centerName')}</Label>
                       <Input
                         id="satelliteCenterName"
-                        value={user.satelliteCenterName || 'Not assigned'}
+                        value={user.satelliteCenterName || t('centers.notAssigned')}
                         disabled
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="satelliteCenterId">Center ID</Label>
+                      <Label htmlFor="satelliteCenterId">{t('centers.centerId')}</Label>
                       <Input
                         id="satelliteCenterId"
-                        value={user.satelliteCenterId || 'Not assigned'}
+                        value={user.satelliteCenterId || t('centers.notAssigned')}
                         disabled
                       />
                     </div>
@@ -196,7 +198,7 @@ const Profile = () => {
             <div className="flex gap-2">
               {!editing ? (
                 <Button onClick={() => setEditing(true)} className="w-full">
-                  Edit Profile
+                  {t('profile.editProfile')}
                 </Button>
               ) : (
                 <>
@@ -208,10 +210,10 @@ const Profile = () => {
                     {updateUserMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Saving...
+                        {t('common.saving')}
                       </>
                     ) : (
-                      'Save Changes'
+                      t('profile.saveChanges')
                     )}
                   </Button>
                   <Button
@@ -220,7 +222,7 @@ const Profile = () => {
                     className="flex-1"
                     disabled={updateUserMutation.isPending}
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </Button>
                 </>
               )}

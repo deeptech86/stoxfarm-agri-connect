@@ -1,5 +1,6 @@
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CheckCircle2, Info, AlertTriangle, XCircle, Loader2, RefreshCw } from 'lucide-react';
@@ -8,6 +9,7 @@ import { formatDistanceToNow } from 'date-fns';
 const NotificationPanel = () => {
   const { user } = useAuth();
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, refreshNotifications } = useNotifications();
+  const { t } = useLanguage();
 
   if (!user) return null;
 
@@ -28,9 +30,9 @@ const NotificationPanel = () => {
     <div className="w-full overflow-hidden">
       <div className="p-3 border-b flex items-center justify-between gap-2">
         <div className="min-w-0 flex-shrink-0">
-          <h3 className="font-semibold text-sm">Notifications</h3>
+          <h3 className="font-semibold text-sm">{t('notifications.title')}</h3>
           {unreadCount > 0 && (
-            <p className="text-xs text-muted-foreground">{unreadCount} unread</p>
+            <p className="text-xs text-muted-foreground">{unreadCount} {t('notifications.unread')}</p>
           )}
         </div>
         <div className="flex gap-1 flex-shrink-0">
@@ -39,7 +41,7 @@ const NotificationPanel = () => {
             size="icon"
             className="h-7 w-7"
             onClick={refreshNotifications}
-            title="Refresh"
+            title={t('notifications.refresh')}
           >
             <RefreshCw className="h-3.5 w-3.5" />
           </Button>
@@ -50,7 +52,7 @@ const NotificationPanel = () => {
               className="text-xs h-7 px-2 whitespace-nowrap"
               onClick={markAllAsRead}
             >
-              Mark all read
+              {t('notifications.markAllRead')}
             </Button>
           )}
         </div>
@@ -62,7 +64,7 @@ const NotificationPanel = () => {
           </div>
         ) : notifications.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground text-sm">
-            No notifications
+            {t('notifications.noNotifications')}
           </div>
         ) : (
           <div className="divide-y">

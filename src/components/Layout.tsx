@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sprout, LogOut, User, Bell } from 'lucide-react';
@@ -7,6 +8,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import NotificationPanel from '@/components/NotificationPanel';
+import LanguageSelector from '@/components/LanguageSelector';
 
 interface LayoutProps {
   children: ReactNode;
@@ -15,7 +17,13 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const { user, logout } = useAuth();
   const { getUnreadCount } = useNotifications();
+  const { t } = useLanguage();
   const navigate = useNavigate();
+
+  const getRoleLabel = (role: string) => {
+    const roleKey = `role.${role}` as const;
+    return t(roleKey) || role;
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -37,11 +45,12 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
             <div>
               <h1 className="text-xl font-bold">StoxxFarm</h1>
-              <p className="text-xs text-muted-foreground capitalize">{user?.role} Portal</p>
+              <p className="text-xs text-muted-foreground">{user?.role ? getRoleLabel(user.role) : ''}</p>
             </div>
           </div>
           
           <div className="flex items-center gap-4">
+            <LanguageSelector />
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
@@ -57,10 +66,10 @@ const Layout = ({ children }: LayoutProps) => {
                 <NotificationPanel />
               </PopoverContent>
             </Popover>
-            <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/profile')} title={t('layout.profile')}>
               <User className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
+            <Button variant="ghost" size="icon" onClick={handleLogout} title={t('common.logout')}>
               <LogOut className="h-5 w-5" />
             </Button>
           </div>

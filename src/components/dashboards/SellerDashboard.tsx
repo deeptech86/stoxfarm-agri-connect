@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -21,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 const SellerDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedBid, setSelectedBid] = useState<Bid | null>(null);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
@@ -41,8 +43,8 @@ const SellerDashboard = () => {
     downloadReceipt(doc, `StoxxFarm_Receipt_Seller_${transaction.transaction_number}.pdf`);
 
     toast({
-      title: 'Receipt Downloaded',
-      description: 'Your seller receipt has been downloaded.',
+      title: t('receipt.downloaded'),
+      description: t('receipt.downloadedDesc'),
     });
   };
 
@@ -88,12 +90,12 @@ const SellerDashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">My Listings</h1>
-          <p className="text-muted-foreground">Manage your produce listings</p>
+          <h1 className="text-3xl font-bold">{t('seller.myListings')}</h1>
+          <p className="text-muted-foreground">{t('seller.manageListings')}</p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Create Listing
+          {t('seller.createListing')}
         </Button>
       </div>
 
@@ -101,25 +103,25 @@ const SellerDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{pendingBids.length}</CardTitle>
-            <CardDescription>Pending Bids</CardDescription>
+            <CardDescription>{t('seller.pendingBids')}</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{activeCount}</CardTitle>
-            <CardDescription>Active Listings</CardDescription>
+            <CardDescription>{t('seller.activeListings')}</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{expiredCount}</CardTitle>
-            <CardDescription>Expired Listings</CardDescription>
+            <CardDescription>{t('seller.expiredListings')}</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">{myListings.length}</CardTitle>
-            <CardDescription>Total Listings</CardDescription>
+            <CardDescription>{t('admin.totalListings')}</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -129,18 +131,18 @@ const SellerDashboard = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>My Payments</CardTitle>
-              <CardDescription>Track payments for your sold produce</CardDescription>
+              <CardTitle>{t('seller.myPayments')}</CardTitle>
+              <CardDescription>{t('seller.trackPayments')}</CardDescription>
             </div>
             <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter status" />
+                <SelectValue placeholder={t('common.filter')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pending">Pending Buyer Payment</SelectItem>
-                <SelectItem value="awaiting_payout">Awaiting Payout</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="pending">{t('payment.pendingBuyer')}</SelectItem>
+                <SelectItem value="awaiting_payout">{t('payment.awaitingPayout')}</SelectItem>
+                <SelectItem value="paid">{t('payment.paid')}</SelectItem>
+                <SelectItem value="all">{t('common.all')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -158,12 +160,12 @@ const SellerDashboard = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Produce</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Rate</TableHead>
-                  <TableHead>Your Payout</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Receipt</TableHead>
+                  <TableHead>{t('table.produce')}</TableHead>
+                  <TableHead>{t('common.quantity')}</TableHead>
+                  <TableHead>{t('table.rate')}</TableHead>
+                  <TableHead>{t('table.yourPayout')}</TableHead>
+                  <TableHead>{t('common.status')}</TableHead>
+                  <TableHead>{t('table.receipt')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -210,12 +212,12 @@ const SellerDashboard = () => {
                     <TableCell>
                       {transaction.seller_paid ? (
                         <Badge variant="outline" className="text-green-600 border-green-600">
-                          Paid
+                          {t('payment.paid')}
                         </Badge>
                       ) : transaction.payment_status === 'completed' ? (
-                        <Badge variant="secondary">Awaiting Payout</Badge>
+                        <Badge variant="secondary">{t('payment.awaitingPayout')}</Badge>
                       ) : (
-                        <Badge variant="outline">Pending Buyer Payment</Badge>
+                        <Badge variant="outline">{t('payment.pendingBuyer')}</Badge>
                       )}
                     </TableCell>
                     <TableCell>
@@ -244,8 +246,8 @@ const SellerDashboard = () => {
       {pendingBids.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Pending Bids</CardTitle>
-            <CardDescription>Review and respond to buyer bids</CardDescription>
+            <CardTitle>{t('seller.pendingBids')}</CardTitle>
+            <CardDescription>{t('seller.reviewBids')}</CardDescription>
           </CardHeader>
           <CardContent>
             {bidsLoading ? (
@@ -256,11 +258,11 @@ const SellerDashboard = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Produce</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Price/kg</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead>{t('table.produce')}</TableHead>
+                    <TableHead>{t('common.quantity')}</TableHead>
+                    <TableHead>{t('table.pricePerKg')}</TableHead>
+                    <TableHead>{t('common.total')}</TableHead>
+                    <TableHead>{t('table.action')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -303,7 +305,7 @@ const SellerDashboard = () => {
                               setSelectedListing(listing || null);
                             }}
                           >
-                            Review
+                            {t('common.view')}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -317,13 +319,13 @@ const SellerDashboard = () => {
       )}
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">All Listings</h2>
+        <h2 className="text-xl font-semibold mb-4">{t('admin.allListings')}</h2>
         {myListings.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
-              <p>You haven't created any listings yet.</p>
+              <p>{t('seller.noListingsYet')}</p>
               <Button variant="link" onClick={() => setShowCreateDialog(true)}>
-                Create your first listing
+                {t('seller.createFirstListing')}
               </Button>
             </CardContent>
           </Card>

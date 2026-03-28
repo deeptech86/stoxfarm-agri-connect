@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ interface PaymentState {
 
 const Payment = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -77,8 +79,8 @@ const Payment = () => {
     // Basic validation
     if (!cardNumber || cardNumber.replace(/\s/g, '').length < 16) {
       toast({
-        title: 'Invalid Card Number',
-        description: 'Please enter a valid 16-digit card number.',
+        title: t('paymentPage.invalidCard'),
+        description: t('paymentPage.invalidCardDesc'),
         variant: 'destructive',
       });
       return;
@@ -86,8 +88,8 @@ const Payment = () => {
 
     if (!expiryDate || expiryDate.length < 5) {
       toast({
-        title: 'Invalid Expiry Date',
-        description: 'Please enter a valid expiry date (MM/YY).',
+        title: t('paymentPage.invalidExpiry'),
+        description: t('paymentPage.invalidExpiryDesc'),
         variant: 'destructive',
       });
       return;
@@ -95,8 +97,8 @@ const Payment = () => {
 
     if (!cvv || cvv.length < 3) {
       toast({
-        title: 'Invalid CVV',
-        description: 'Please enter a valid CVV.',
+        title: t('paymentPage.invalidCvv'),
+        description: t('paymentPage.invalidCvvDesc'),
         variant: 'destructive',
       });
       return;
@@ -104,8 +106,8 @@ const Payment = () => {
 
     if (!cardName.trim()) {
       toast({
-        title: 'Name Required',
-        description: 'Please enter the name on card.',
+        title: t('paymentPage.nameRequired'),
+        description: t('paymentPage.nameRequiredDesc'),
         variant: 'destructive',
       });
       return;
@@ -131,13 +133,13 @@ const Payment = () => {
       setPaymentSuccess(true);
 
       toast({
-        title: 'Payment Successful',
-        description: `Payment of ₹${paymentData.totalAmount.toFixed(2)} completed successfully.`,
+        title: t('paymentPage.success'),
+        description: t('paymentPage.successDesc'),
       });
     } catch (error) {
       toast({
-        title: 'Payment Failed',
-        description: 'There was an error processing your payment. Please try again.',
+        title: t('paymentPage.failed'),
+        description: t('paymentPage.invalidCardDesc'),
         variant: 'destructive',
       });
     }
@@ -160,8 +162,8 @@ const Payment = () => {
     downloadReceipt(doc, `StoxxFarm_Receipt_Buyer_${completedTransaction.transaction_number}.pdf`);
 
     toast({
-      title: 'Receipt Downloaded',
-      description: 'Your buyer receipt has been downloaded.',
+      title: t('receipt.downloaded'),
+      description: t('receipt.downloadedDesc'),
     });
   };
 
@@ -182,8 +184,8 @@ const Payment = () => {
     downloadReceipt(doc, `StoxxFarm_Receipt_Seller_${completedTransaction.transaction_number}.pdf`);
 
     toast({
-      title: 'Receipt Downloaded',
-      description: 'Seller receipt has been downloaded.',
+      title: t('receipt.downloaded'),
+      description: t('receipt.downloadedDesc'),
     });
   };
 
@@ -196,22 +198,22 @@ const Payment = () => {
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="h-12 w-12 text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold text-green-800 mb-2">Payment Successful!</h2>
+              <h2 className="text-2xl font-bold text-green-800 mb-2">{t('paymentPage.success')}</h2>
               <p className="text-muted-foreground mb-6">
-                Your payment of ₹{paymentData.totalAmount.toFixed(2)} has been processed successfully.
+                {t('paymentPage.successDesc')}
               </p>
               <div className="bg-muted p-4 rounded-lg text-left mb-6">
-                <p className="text-sm"><strong>Order:</strong> {paymentData.produceName}</p>
-                <p className="text-sm"><strong>Quantity:</strong> {paymentData.quantity} kg</p>
-                <p className="text-sm"><strong>Seller:</strong> {paymentData.sellerName}</p>
-                <p className="text-sm"><strong>Transaction ID:</strong> {completedTransaction?.transaction_number || `TXN${Date.now()}`}</p>
+                <p className="text-sm"><strong>{t('paymentPage.order')}</strong> {paymentData.produceName}</p>
+                <p className="text-sm"><strong>{t('common.quantity')}:</strong> {paymentData.quantity} kg</p>
+                <p className="text-sm"><strong>{t('paymentPage.seller')}:</strong> {paymentData.sellerName}</p>
+                <p className="text-sm"><strong>{t('paymentPage.transactionId')}</strong> {completedTransaction?.transaction_number || `TXN${Date.now()}`}</p>
               </div>
 
               {/* Receipt Download Section */}
               {completedTransaction && (
                 <div className="mb-6">
                   <Separator className="mb-4" />
-                  <p className="text-sm text-muted-foreground mb-3">Download Payment Receipts</p>
+                  <p className="text-sm text-muted-foreground mb-3">{t('paymentPage.downloadReceipts')}</p>
                   <div className="flex gap-3 justify-center">
                     <Button
                       variant="outline"
@@ -220,7 +222,7 @@ const Payment = () => {
                       className="flex items-center gap-2"
                     >
                       <FileText className="h-4 w-4" />
-                      Buyer Receipt
+                      {t('paymentPage.buyerReceipt')}
                       <Download className="h-3 w-3" />
                     </Button>
                     <Button
@@ -230,7 +232,7 @@ const Payment = () => {
                       className="flex items-center gap-2"
                     >
                       <FileText className="h-4 w-4" />
-                      Seller Receipt
+                      {t('paymentPage.sellerReceipt')}
                       <Download className="h-3 w-3" />
                     </Button>
                   </div>
@@ -238,7 +240,7 @@ const Payment = () => {
               )}
 
               <Button onClick={() => navigate('/dashboard')} className="w-full">
-                Back to Dashboard
+                {t('layout.backToDashboard')}
               </Button>
             </CardContent>
           </Card>
@@ -256,7 +258,7 @@ const Payment = () => {
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
+          {t('layout.backToDashboard')}
         </Button>
 
         <div className="grid md:grid-cols-5 gap-6">
@@ -264,37 +266,37 @@ const Payment = () => {
           <div className="md:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Order Summary</CardTitle>
-                <CardDescription>Review your order details</CardDescription>
+                <CardTitle>{t('paymentPage.title')}</CardTitle>
+                <CardDescription>{t('paymentPage.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Product</p>
+                  <p className="text-sm text-muted-foreground">{t('paymentPage.product')}</p>
                   <p className="font-semibold">{paymentData.produceName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Seller</p>
+                  <p className="text-sm text-muted-foreground">{t('paymentPage.seller')}</p>
                   <p className="font-medium">{paymentData.sellerName}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Quantity</p>
+                    <p className="text-sm text-muted-foreground">{t('common.quantity')}</p>
                     <p className="font-medium">{paymentData.quantity} kg</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Rate</p>
+                    <p className="text-sm text-muted-foreground">{t('paymentPage.rate')}</p>
                     <p className="font-medium">₹{paymentData.pricePerUnit}/kg</p>
                   </div>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">Total Amount</span>
+                  <span className="text-lg font-semibold">{t('paymentPage.totalAmount')}</span>
                   <span className="text-2xl font-bold text-primary">
                     ₹{paymentData.totalAmount.toFixed(2)}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  * Includes GST and Platform Fee
+                  {t('paymentPage.gstNote')}
                 </p>
               </CardContent>
             </Card>
@@ -309,15 +311,15 @@ const Payment = () => {
                     <CreditCard className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle>Payment Details</CardTitle>
-                    <CardDescription>Enter your card information</CardDescription>
+                    <CardTitle>{t('paymentPage.paymentDetails')}</CardTitle>
+                    <CardDescription>{t('paymentPage.enterCard')}</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <form onSubmit={handlePayment}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="cardName">Name on Card</Label>
+                    <Label htmlFor="cardName">{t('paymentPage.nameOnCard')}</Label>
                     <Input
                       id="cardName"
                       placeholder="John Doe"
@@ -328,7 +330,7 @@ const Payment = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="cardNumber">Card Number</Label>
+                    <Label htmlFor="cardNumber">{t('paymentPage.cardNumber')}</Label>
                     <div className="relative">
                       <Input
                         id="cardNumber"
@@ -344,7 +346,7 @@ const Payment = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="expiry">Expiry Date</Label>
+                      <Label htmlFor="expiry">{t('paymentPage.expiryDate')}</Label>
                       <Input
                         id="expiry"
                         placeholder="MM/YY"
@@ -355,7 +357,7 @@ const Payment = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="cvv">CVV</Label>
+                      <Label htmlFor="cvv">{t('paymentPage.cvv')}</Label>
                       <Input
                         id="cvv"
                         type="password"
@@ -371,7 +373,7 @@ const Payment = () => {
                   <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
                     <Lock className="h-4 w-4 text-muted-foreground" />
                     <p className="text-xs text-muted-foreground">
-                      Your payment information is encrypted and secure. We do not store your card details.
+                      {t('paymentPage.secureNote')}
                     </p>
                   </div>
                 </CardContent>
@@ -385,18 +387,18 @@ const Payment = () => {
                     {updatePaymentStatus.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Processing...
+                        {t('paymentPage.processing')}
                       </>
                     ) : (
                       <>
                         <Lock className="h-4 w-4 mr-2" />
-                        Pay ₹{paymentData.totalAmount.toFixed(2)}
+                        {t('paymentPage.pay')} ₹{paymentData.totalAmount.toFixed(2)}
                       </>
                     )}
                   </Button>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Building2 className="h-4 w-4" />
-                    <span>Powered by StoxxFarm Secure Payments</span>
+                    <span>{t('paymentPage.poweredBy')}</span>
                   </div>
                 </CardFooter>
               </form>
