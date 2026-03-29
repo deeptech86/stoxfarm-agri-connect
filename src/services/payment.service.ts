@@ -56,6 +56,27 @@ export interface RazorpayErrorResponse {
 
 class PaymentService {
   /**
+   * Format phone number for Razorpay (expects 10-digit Indian number)
+   */
+  private formatPhoneNumber(phone: string): string {
+    if (!phone) return '';
+
+    // Remove all non-digit characters
+    const digits = phone.replace(/\D/g, '');
+
+    // Handle different formats
+    if (digits.length === 10) {
+      return digits; // Already in correct format
+    } else if (digits.length === 12 && digits.startsWith('91')) {
+      return digits.slice(2); // Remove +91 country code
+    } else if (digits.length === 11 && digits.startsWith('0')) {
+      return digits.slice(1); // Remove leading 0
+    }
+
+    return digits.slice(-10); // Take last 10 digits as fallback
+  }
+
+  /**
    * Create a Razorpay order for a transaction
    */
   async createOrder(transactionId: string): Promise<CreateOrderResponse> {
@@ -117,7 +138,7 @@ class PaymentService {
       prefill: {
         name: userDetails.name,
         email: userDetails.email,
-        contact: userDetails.phone,
+        contact: this.formatPhoneNumber(userDetails.phone),
       },
       notes: {
         transaction_id: orderData.transaction_id,
