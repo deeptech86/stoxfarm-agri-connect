@@ -62,7 +62,7 @@ class PaymentService {
     const response = await api.post<CreateOrderResponse>('/payments/create-order', {
       transaction_id: transactionId,
     });
-    return response.data;
+    return response;
   }
 
   /**
@@ -70,7 +70,7 @@ class PaymentService {
    */
   async verifyPayment(data: VerifyPaymentRequest): Promise<VerifyPaymentResponse> {
     const response = await api.post<VerifyPaymentResponse>('/payments/verify', data);
-    return response.data;
+    return response;
   }
 
   /**
