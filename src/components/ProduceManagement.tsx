@@ -15,6 +15,7 @@ import { useSatelliteCenters } from '@/hooks/useSatelliteCenters';
 import { ProduceResponse, CreateProduceRequest, UpdateProduceRequest } from '@/services/produce.service';
 import { Plus, Pencil, Trash2, Search, Loader2, Package, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ImageUploader from './ImageUploader';
 
 const ProduceManagement = () => {
   const { toast } = useToast();
@@ -409,15 +410,12 @@ const ProduceManagement = () => {
                 rows={3}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="image_url">Image URL</Label>
-              <Input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
+            <ImageUploader
+              value={formData.image_url || ''}
+              onChange={(url) => setFormData({ ...formData, image_url: url })}
+              category="produce"
+              disabled={createProduceMutation.isPending || updateProduceMutation.isPending}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>

@@ -22,3 +22,6 @@ export * from './delivery.service';
 
 export { default as paymentService } from './payment.service';
 export * from './payment.service';
+
+export { default as uploadService } from './upload.service';
+export * from './upload.service';
