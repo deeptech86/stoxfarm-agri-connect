@@ -19,6 +19,8 @@ import { TransactionResponse } from '@/services/transaction.service';
 import { generateSellerReceipt, downloadReceipt } from '@/services/receipt.service';
 import { useToast } from '@/hooks/use-toast';
 
+type ListingFilterStatus = 'active' | 'expired' | 'all';
+
 const SellerDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -27,6 +29,7 @@ const SellerDashboard = () => {
   const [selectedBid, setSelectedBid] = useState<Bid | null>(null);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('pending');
+  const [listingStatusFilter, setListingStatusFilter] = useState<ListingFilterStatus>('active');
 
   const handleDownloadSellerReceipt = (transaction: TransactionResponse) => {
     const receiptData = {
@@ -75,8 +78,26 @@ const SellerDashboard = () => {
     return true;
   });
 
-  const activeCount = myListings.filter(l => l.status === 'active').length;
-  const expiredCount = myListings.filter(l => l.status === 'expired').length;
+  // Check if listing is actually expired based on expires_at date (with defensive handling for invalid dates)
+  const isListingExpired = (listing: Listing) => {
+    const expiresAt = new Date(listing.expires_at);
+    return !isNaN(expiresAt.getTime()) && new Date() > expiresAt;
+  };
+
+  // Calculate counts considering actual expiration date
+  const activeCount = myListings.filter(l => l.status === 'active' && !isListingExpired(l)).length;
+  const expiredCount = myListings.filter(l => l.status === 'expired' || isListingExpired(l)).length;
+
+  // Filter listings based on selected status
+  const filteredListings = myListings.filter(listing => {
+    const actuallyExpired = isListingExpired(listing);
+    const displayStatus = actuallyExpired ? 'expired' : listing.status;
+
+    if (listingStatusFilter === 'all') return true;
+    if (listingStatusFilter === 'active') return displayStatus === 'active';
+    if (listingStatusFilter === 'expired') return displayStatus === 'expired';
+    return true;
+  });
 
   if (listingsLoading) {
     return (
@@ -319,7 +340,19 @@ const SellerDashboard = () => {
       )}
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">{t('admin.allListings')}</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">{t('seller.myListings')}</h2>
+          <Select value={listingStatusFilter} onValueChange={(value) => setListingStatusFilter(value as ListingFilterStatus)}>
+            <SelectTrigger className="w-[180px]" aria-label={t('common.filter')}>
+              <SelectValue placeholder={t('common.filter')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">{t('seller.activeListings')} ({activeCount})</SelectItem>
+              <SelectItem value="expired">{t('seller.expiredListings')} ({expiredCount})</SelectItem>
+              <SelectItem value="all">{t('admin.allListings')} ({myListings.length})</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         {myListings.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
@@ -329,9 +362,21 @@ const SellerDashboard = () => {
               </Button>
             </CardContent>
           </Card>
+        ) : filteredListings.length === 0 ? (
+          <Card role="status" aria-live="polite">
+            <CardContent className="py-8 text-center text-muted-foreground">
+              <p>
+                {listingStatusFilter === 'active'
+                  ? t('seller.noActiveListings')
+                  : listingStatusFilter === 'expired'
+                  ? t('seller.noExpiredListings')
+                  : t('seller.noListingsYet')}
+              </p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {myListings.map(listing => (
+            {filteredListings.map(listing => (
               <ListingCard key={listing.id} listing={listing} showActions userRole="seller" />
             ))}
           </div>

@@ -28,12 +28,30 @@ const Profile = () => {
     pincode: (user as unknown as { pincode?: string })?.pincode || '',
     notes: user?.notes || '',
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (formData.phone.trim() && !/^\d{10}$/.test(formData.phone.trim())) {
+      newErrors.phone = t('validation.phoneInvalid');
+    }
+
+    if (formData.pincode.trim() && !/^\d{6}$/.test(formData.pincode.trim())) {
+      newErrors.pincode = t('validation.pincodeInvalid');
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = async () => {
+    if (!validateForm()) return;
+
     try {
       await updateUserMutation.mutateAsync({
         id: user.id,
@@ -119,9 +137,15 @@ const Profile = () => {
                 <Input
                   id="phone"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setFormData({ ...formData, phone: value });
+                  }}
+                  placeholder="10-digit phone number"
+                  maxLength={10}
                   disabled={!editing}
                 />
+                {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
               </div>
 
               <div className="space-y-2">
@@ -150,11 +174,15 @@ const Profile = () => {
                   <Input
                     id="pincode"
                     value={formData.pincode}
-                    onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setFormData({ ...formData, pincode: value });
+                    }}
                     placeholder="6-digit pincode"
                     maxLength={6}
                     disabled={!editing}
                   />
+                  {errors.pincode && <p className="text-sm text-destructive">{errors.pincode}</p>}
                 </div>
               </div>
 

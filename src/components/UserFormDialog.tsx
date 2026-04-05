@@ -115,6 +115,11 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
     }
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone is required';
+    } else if (!/^\d{10}$/.test(formData.phone.trim())) {
+      newErrors.phone = 'Phone number must be exactly 10 digits';
+    }
+    if (formData.pincode.trim() && !/^\d{6}$/.test(formData.pincode.trim())) {
+      newErrors.pincode = 'Pincode must be exactly 6 digits';
     }
     if (!formData.address.trim()) {
       newErrors.address = 'Address is required';
@@ -269,8 +274,12 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
                 id="phone"
                 data-testid="user-phone-input"
                 value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="Enter phone number"
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setFormData(prev => ({ ...prev, phone: value }));
+                }}
+                placeholder="Enter 10-digit phone number"
+                maxLength={10}
               />
               {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
             </div>
@@ -305,10 +314,14 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }: UserFormDialogProp
               <Input
                 id="pincode"
                 value={formData.pincode}
-                onChange={(e) => setFormData(prev => ({ ...prev, pincode: e.target.value }))}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setFormData(prev => ({ ...prev, pincode: value }));
+                }}
                 placeholder="Enter 6-digit pincode"
                 maxLength={6}
               />
+              {errors.pincode && <p className="text-sm text-destructive">{errors.pincode}</p>}
             </div>
           </div>
 

@@ -74,6 +74,8 @@ const Register = () => {
     }
     if (!formData.phone.trim()) {
       newErrors.phone = t('validation.phoneRequired');
+    } else if (!/^\d{10}$/.test(formData.phone.trim())) {
+      newErrors.phone = t('validation.phoneInvalid');
     }
     if (!formData.address.trim()) {
       newErrors.address = t('validation.addressRequired');
@@ -417,8 +419,12 @@ const Register = () => {
                   <Input
                     id="phone"
                     value={formData.phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData(prev => ({ ...prev, phone: value }));
+                    }}
                     placeholder={t('register.phonePlaceholder')}
+                    maxLength={10}
                     disabled={isSubmitting}
                   />
                   {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
@@ -478,7 +484,10 @@ const Register = () => {
                   <Input
                     id="pincode"
                     value={formData.pincode}
-                    onChange={(e) => setFormData(prev => ({ ...prev, pincode: e.target.value }))}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setFormData(prev => ({ ...prev, pincode: value }));
+                    }}
                     placeholder={t('register.pincodePlaceholder')}
                     maxLength={6}
                     disabled={isSubmitting || isGettingLocation}

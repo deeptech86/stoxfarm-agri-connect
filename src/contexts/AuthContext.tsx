@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { User } from '@/types/user';
 import { authService, UserResponse } from '@/services/auth.service';
-import { getStoredTokens } from '@/lib/api';
+import { getStoredTokens, clearStoredTokens, ApiError } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -45,9 +45,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const userResponse = await authService.getMe();
           setUser(mapUserResponse(userResponse));
         } catch (error) {
-          // Token invalid or expired, clear it
           console.error('Failed to restore session:', error);
-          await authService.logout().catch(() => {});
+          // Only clear tokens for authentication errors (401), not for network errors
+          if (error instanceof ApiError && error.status === 401) {
+            clearStoredTokens();
+          }
+          // For other errors (network issues, server down), keep the tokens
+          // User can retry or will be prompted to login on next API call
         }
       }
       setIsLoading(false);

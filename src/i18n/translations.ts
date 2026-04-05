@@ -149,6 +149,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'validation.cityRequired': 'City is required',
     'validation.pincodeRequired': 'Pincode is required',
     'validation.pincodeInvalid': 'Pincode must be 6 digits',
+    'validation.phoneInvalid': 'Phone number must be exactly 10 digits',
 
     // Toast Messages
     'toast.maxItems': 'Maximum 5 items',
@@ -256,6 +257,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'seller.reviewBids': 'Review and respond to buyer bids',
     'seller.noListingsYet': "You haven't created any listings yet.",
     'seller.createFirstListing': 'Create your first listing',
+    'seller.noActiveListings': 'No active listings found.',
+    'seller.noExpiredListings': 'No expired listings found.',
 
     // Buyer Dashboard
     'buyer.dashboard': 'Buyer Dashboard',
@@ -268,6 +271,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'buyer.noListings': 'No listings available',
     'buyer.noBids': 'No bids placed yet',
     'buyer.noCounterOffers': 'No counter offers',
+    'buyer.searchPlaceholder': 'Search by produce or seller name...',
+    'buyer.filterByProduce': 'Filter by Produce',
+    'buyer.includeAllCenters': 'Include listings from all satellite centers',
+    'buyer.showingFromCenter': 'Showing listings from',
 
     // Admin Dashboard
     'admin.dashboard': 'Admin Dashboard',
@@ -661,6 +668,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'validation.cityRequired': 'शहर आवश्यक है',
     'validation.pincodeRequired': 'पिनकोड आवश्यक है',
     'validation.pincodeInvalid': 'पिनकोड 6 अंकों का होना चाहिए',
+    'validation.phoneInvalid': 'फोन नंबर बिल्कुल 10 अंकों का होना चाहिए',
 
     // Toast Messages
     'toast.maxItems': 'अधिकतम 5 आइटम',
@@ -768,6 +776,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'seller.reviewBids': 'खरीदार की बोलियों की समीक्षा करें और जवाब दें',
     'seller.noListingsYet': 'आपने अभी तक कोई लिस्टिंग नहीं बनाई है।',
     'seller.createFirstListing': 'अपनी पहली लिस्टिंग बनाएं',
+    'seller.noActiveListings': 'कोई सक्रिय लिस्टिंग नहीं मिली।',
+    'seller.noExpiredListings': 'कोई समाप्त लिस्टिंग नहीं मिली।',
 
     // Buyer Dashboard
     'buyer.dashboard': 'खरीदार डैशबोर्ड',
@@ -780,6 +790,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'buyer.noListings': 'कोई लिस्टिंग उपलब्ध नहीं',
     'buyer.noBids': 'अभी तक कोई बोली नहीं लगाई',
     'buyer.noCounterOffers': 'कोई काउंटर ऑफर नहीं',
+    'buyer.searchPlaceholder': 'उपज या विक्रेता नाम से खोजें...',
+    'buyer.filterByProduce': 'उपज द्वारा फ़िल्टर करें',
+    'buyer.includeAllCenters': 'सभी सैटेलाइट सेंटरों की लिस्टिंग शामिल करें',
+    'buyer.showingFromCenter': 'लिस्टिंग दिखाई जा रही है',
 
     // Admin Dashboard
     'admin.dashboard': 'एडमिन डैशबोर्ड',
@@ -1173,6 +1187,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'validation.cityRequired': 'ਸ਼ਹਿਰ ਲੋੜੀਂਦਾ ਹੈ',
     'validation.pincodeRequired': 'ਪਿੰਨਕੋਡ ਲੋੜੀਂਦਾ ਹੈ',
     'validation.pincodeInvalid': 'ਪਿੰਨਕੋਡ 6 ਅੰਕਾਂ ਦਾ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ',
+    'validation.phoneInvalid': 'ਫੋਨ ਨੰਬਰ ਬਿਲਕੁਲ 10 ਅੰਕਾਂ ਦਾ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ',
 
     // Toast Messages
     'toast.maxItems': 'ਵੱਧ ਤੋਂ ਵੱਧ 5 ਆਈਟਮਾਂ',
@@ -1263,6 +1278,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'seller.reviewBids': 'ਖਰੀਦਦਾਰ ਦੀਆਂ ਬੋਲੀਆਂ ਦੀ ਸਮੀਖਿਆ ਕਰੋ ਅਤੇ ਜਵਾਬ ਦਿਓ',
     'seller.noListingsYet': 'ਤੁਸੀਂ ਅਜੇ ਤੱਕ ਕੋਈ ਲਿਸਟਿੰਗ ਨਹੀਂ ਬਣਾਈ।',
     'seller.createFirstListing': 'ਆਪਣੀ ਪਹਿਲੀ ਲਿਸਟਿੰਗ ਬਣਾਓ',
+    'seller.noActiveListings': 'ਕੋਈ ਸਰਗਰਮ ਲਿਸਟਿੰਗ ਨਹੀਂ ਮਿਲੀ।',
+    'seller.noExpiredListings': 'ਕੋਈ ਮਿਆਦ ਪੁੱਗੀ ਲਿਸਟਿੰਗ ਨਹੀਂ ਮਿਲੀ।',
 
     // Buyer Dashboard
     'buyer.dashboard': 'ਖਰੀਦਦਾਰ ਡੈਸ਼ਬੋਰਡ',
@@ -1275,6 +1292,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'buyer.noListings': 'ਕੋਈ ਲਿਸਟਿੰਗ ਉਪਲਬਧ ਨਹੀਂ',
     'buyer.noBids': 'ਅਜੇ ਤੱਕ ਕੋਈ ਬੋਲੀ ਨਹੀਂ ਲਗਾਈ',
     'buyer.noCounterOffers': 'ਕੋਈ ਕਾਊਂਟਰ ਆਫਰ ਨਹੀਂ',
+    'buyer.searchPlaceholder': 'ਉਪਜ ਜਾਂ ਵਿਕਰੇਤਾ ਨਾਮ ਨਾਲ ਖੋਜੋ...',
+    'buyer.filterByProduce': 'ਉਪਜ ਦੁਆਰਾ ਫਿਲਟਰ ਕਰੋ',
+    'buyer.includeAllCenters': 'ਸਾਰੇ ਸੈਟੇਲਾਈਟ ਸੈਂਟਰਾਂ ਦੀਆਂ ਲਿਸਟਿੰਗਾਂ ਸ਼ਾਮਲ ਕਰੋ',
+    'buyer.showingFromCenter': 'ਲਿਸਟਿੰਗਾਂ ਦਿਖਾਈਆਂ ਜਾ ਰਹੀਆਂ ਹਨ',
 
     // Admin Dashboard
     'admin.dashboard': 'ਐਡਮਿਨ ਡੈਸ਼ਬੋਰਡ',

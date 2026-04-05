@@ -23,6 +23,8 @@ export interface ListingResponse {
   id: string;
   seller_id: string;
   seller_name?: string;
+  satellite_center_id?: string;
+  satellite_center_name?: string;
   produce_id: string;
   produce_name: string;
   mandi_rate: number;

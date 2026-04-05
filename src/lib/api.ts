@@ -145,8 +145,7 @@ export const apiFetch = async <T>(
         onTokenRefreshed(newToken);
         return apiFetch<T>(endpoint, options, false);
       } else {
-        // Redirect to login
-        window.location.href = '/login';
+        // Don't force redirect - let the calling code handle session expiration gracefully
         throw new ApiError(401, 'Session expired');
       }
     } else {

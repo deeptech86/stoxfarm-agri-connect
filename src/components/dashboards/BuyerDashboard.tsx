@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +27,9 @@ const BuyerDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchProduce, setSearchProduce] = useState('all');
+  const [includeAllCenters, setIncludeAllCenters] = useState(false);
   const [selectedCounterBid, setSelectedCounterBid] = useState<Bid | null>(null);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('completed');
@@ -41,10 +45,34 @@ const BuyerDashboard = () => {
   const { data: transactionsData, isLoading: transactionsLoading } = useUserTransactions('buyer', 1, 50, 'pending');
   const { data: allTransactionsData, isLoading: allTransactionsLoading } = useUserTransactions('buyer', 1, 50, undefined);
 
-  const activeListings = listingsData?.items || [];
+  const allActiveListings = listingsData?.items || [];
   const myBids = bidsData?.items || [];
   const counterBids = myBids.filter(b => b.status === 'counter');
   const pendingPaymentTransactions = transactionsData?.items || [];
+
+  // Filter listings based on search query and satellite center
+  const activeListings = useMemo(() => {
+    return allActiveListings.filter(listing => {
+      // Filter by search query (produce name or seller name)
+      const query = searchQuery.toLowerCase().trim();
+      if (query) {
+        const matchesProduceName = listing.produce_name.toLowerCase().includes(query);
+        const matchesSellerName = listing.seller_name?.toLowerCase().includes(query) ?? false;
+        if (!matchesProduceName && !matchesSellerName) {
+          return false;
+        }
+      }
+
+      // Filter by satellite center (if user has one and checkbox is not checked)
+      if (!includeAllCenters && user?.satellite_center_id && listing.satellite_center_id) {
+        if (listing.satellite_center_id !== user.satellite_center_id) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [allActiveListings, searchQuery, includeAllCenters, user?.satellite_center_id]);
 
   // Filter completed payments (awaiting payout or paid)
   const allBuyerTransactions = allTransactionsData?.items || [];
@@ -112,7 +140,20 @@ const BuyerDashboard = () => {
         <CardContent>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="produce">{t('common.filter')}</Label>
+              <Label htmlFor="searchQuery">{t('common.search')}</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <Input
+                  id="searchQuery"
+                  placeholder={t('buyer.searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="produce">{t('buyer.filterByProduce')}</Label>
               <Select value={searchProduce} onValueChange={setSearchProduce}>
                 <SelectTrigger id="produce">
                   <SelectValue placeholder={t('common.all')} />
@@ -127,6 +168,26 @@ const BuyerDashboard = () => {
                 </SelectContent>
               </Select>
             </div>
+            {user?.satellite_center_id && (
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox
+                  id="includeAllCenters"
+                  checked={includeAllCenters}
+                  onCheckedChange={(checked) => setIncludeAllCenters(checked === true)}
+                />
+                <Label
+                  htmlFor="includeAllCenters"
+                  className="text-sm font-normal cursor-pointer"
+                >
+                  {t('buyer.includeAllCenters')}
+                </Label>
+              </div>
+            )}
+            {user?.satellite_center_name && !includeAllCenters && (
+              <p className="text-sm text-muted-foreground">
+                {t('buyer.showingFromCenter')}: <span className="font-medium">{user.satellite_center_name}</span>
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -351,7 +412,8 @@ const BuyerDashboard = () => {
                 </TableHeader>
                 <TableBody>
                   {counterBids.map(bid => {
-                    const listing = activeListings.find(l => l.id === bid.listing_id);
+                    // Use allActiveListings to find the listing (not filtered list)
+                    const listing = allActiveListings.find(l => l.id === bid.listing_id);
                     return (
                       <TableRow key={bid.id}>
                         <TableCell>{bid.quantity} kg</TableCell>
