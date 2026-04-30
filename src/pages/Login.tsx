@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Leaf, Eye, EyeOff } from 'lucide-react';
 import LanguageSelector from '@/components/LanguageSelector';
+import heroFarmer from '@/assets/hero-farmers.jpg';
 
 // Decorative SVG components for vegetables/fruits
 const TomatoIcon = ({ className }: { className?: string }) => (
@@ -110,53 +111,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-amber-50/30 to-green-50 p-4 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Large leaf patterns */}
-        <LeafPattern className="absolute -top-20 -left-20 w-64 h-64 text-green-600 rotate-45 opacity-50" />
-        <LeafPattern className="absolute -bottom-20 -right-20 w-80 h-80 text-green-600 -rotate-45 opacity-50" />
-
-        {/* Decorative dots pattern - top left */}
-        <div className="absolute top-20 left-10 grid grid-cols-4 gap-2">
-          {[...Array(16)].map((_, i) => (
-            <div key={i} className="w-2 h-2 rounded-full bg-amber-400/40" />
-          ))}
-        </div>
-
-        {/* Decorative dots pattern - bottom right */}
-        <div className="absolute bottom-32 right-16 grid grid-cols-3 gap-3">
-          {[...Array(9)].map((_, i) => (
-            <div key={i} className="w-3 h-3 rounded-full bg-green-400/30" />
-          ))}
-        </div>
-
-        {/* Curved lines */}
-        <svg className="absolute top-32 left-32 w-32 h-32 text-green-300 opacity-60" viewBox="0 0 100 100">
-          <path d="M10 50 Q 50 10 90 50" stroke="currentColor" strokeWidth="2" fill="none" />
-          <path d="M10 60 Q 50 20 90 60" stroke="currentColor" strokeWidth="2" fill="none" />
-        </svg>
-
-        <svg className="absolute bottom-40 right-40 w-24 h-24 text-amber-300 opacity-60" viewBox="0 0 100 100">
-          <path d="M10 50 Q 50 90 90 50" stroke="currentColor" strokeWidth="2" fill="none" />
-        </svg>
-
-        {/* Vegetable icons scattered around */}
-        <TomatoIcon className="absolute top-24 right-[15%] w-16 h-16 opacity-80 animate-bounce" style={{ animationDuration: '3s' }} />
-        <CarrotIcon className="absolute bottom-32 left-[12%] w-14 h-14 opacity-80 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }} />
-        <BroccoliIcon className="absolute top-[40%] left-[8%] w-12 h-12 opacity-70 animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }} />
-        <CornIcon className="absolute top-[30%] right-[8%] w-14 h-14 opacity-80 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1.5s' }} />
-        <EggplantIcon className="absolute bottom-[25%] right-[12%] w-12 h-12 opacity-70 animate-bounce" style={{ animationDuration: '3s', animationDelay: '2s' }} />
-        <TomatoIcon className="absolute bottom-20 left-[25%] w-10 h-10 opacity-60" />
-        <CarrotIcon className="absolute top-16 left-[20%] w-12 h-12 opacity-70 rotate-12" />
-
-        {/* Abstract shapes */}
-        <div className="absolute top-[45%] left-[5%] w-16 h-20 border-2 border-green-300/40 rounded-lg rotate-12" />
-        <div className="absolute bottom-[35%] right-[6%] w-20 h-16 border-2 border-amber-300/40 rounded-lg -rotate-6" />
-
-        {/* Small decorative squares */}
-        <div className="absolute top-[60%] right-[18%] w-8 h-8 bg-amber-400/20 rounded" />
-        <div className="absolute top-[20%] left-[30%] w-6 h-6 bg-green-400/20 rounded rotate-45" />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* B&W farmer background */}
+      <div className="absolute inset-0">
+        <img
+          src={heroFarmer}
+          alt="Indian farmer in farmland"
+          className="w-full h-full object-cover grayscale"
+        />
+        <div className="absolute inset-0 bg-black/60" />
       </div>
 
       {/* Language selector */}
@@ -169,7 +132,7 @@ const Login = () => {
         <div className="bg-primary text-primary-foreground p-2 rounded-lg">
           <Leaf className="h-6 w-6" />
         </div>
-        <span className="text-xl font-bold text-primary">StoxxFarm</span>
+        <span className="text-xl font-bold text-white">StoxxFarm</span>
       </div>
 
       {/* Main login card */}
@@ -296,7 +259,7 @@ const Login = () => {
       </Card>
 
       {/* Footer */}
-      <div className="absolute bottom-4 text-center text-xs text-gray-400 z-10">
+      <div className="absolute bottom-4 text-center text-xs text-white/40 z-10">
         <p>© {new Date().getFullYear()} StoxxFarm. All rights reserved.</p>
       </div>
     </div>
